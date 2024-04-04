@@ -1,0 +1,17 @@
+certifi==2024.2.2
+cffi==1.16.0
+charset-normalizer==3.3.2
+colorama==0.4.6
+coloredlogs==15.0.1
+cryptography==42.0.5
+humanfriendly==10.0
+idna==3.6
+protobuf==3.20.0
+pycparser==2.22
+pycryptodome==3.20.0
+pycryptodomex==3.20.0
+pyfiglet==1.0.2
+pyreadline3==3.4.1
+requests==2.31.0
+urllib3==2.2.1
+xmltodict==0.13.0

@@ -1,1 +1,3 @@
 venv/*
+modules/original_lic.bin
+modules/parsed_lic.bin

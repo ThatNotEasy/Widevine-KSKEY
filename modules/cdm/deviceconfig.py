@@ -6,11 +6,19 @@ device_android_generic = {
     'security_level': 3,
     'session_id_type': 'android',
     'private_key_available': True,
-    'vmp': False,
+    'vmp': True,
     'send_key_control_nonce': True
 }
-
-devices_available = [device_android_generic]
+device_chrome_generic = {
+    'name': 'chrome_cdm',
+    'description': 'Chrome CDM 2710',
+    'security_level': 3,
+    'session_id_type': 'chrome',
+    'private_key_available': True,
+    'vmp': True,
+    'send_key_control_nonce': True
+}
+devices_available = [device_chrome_generic, device_android_generic]
 
 FILES_FOLDER = 'devices'
 

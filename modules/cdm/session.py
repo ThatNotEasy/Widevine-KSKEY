@@ -14,5 +14,5 @@ class Session:
         self.license_request = None
         self.license = None
         self.service_certificate = None
-        self.privacy_mode = False
+        self.privacy_mode = None
         self.keys = []

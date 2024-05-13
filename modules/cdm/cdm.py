@@ -7,7 +7,7 @@ import binascii
 from google.protobuf.message import DecodeError
 from google.protobuf import text_format
 
-from modules.cdm.protos import wv_proto3_pb2 as wv_proto2
+from modules.cdm.protos import wv_proto2_pb2 as wv_proto2
 from modules.cdm.session import Session
 from modules.cdm.key import Key
 from Cryptodome.Random import get_random_bytes
@@ -185,6 +185,7 @@ class Cdm:
                 with open(session.device_config.device_vmp_blob_filename, "rb") as f:
                     try:
                         vmp_bytes = vmp_hashes.ParseFromString(f.read())
+                        self.logger.debug(vmp_bytes)
                     except DecodeError:
                         self.logger.error("vmp hashes failed to parse as protobuf")
                         return 1

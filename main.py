@@ -6,9 +6,9 @@ import importlib
 import pyfiglet
 from base64 import b64encode
 from colorama import init, Fore
-from modules.cdm.deviceconfig import device_android_generic
-from modules.cdm.pssh import get_pssh
-from modules.cdm.wvdecryptcustom import WvDecrypt
+from modules.deviceconfig import device_android_generic
+from modules.pssh import get_pssh
+from modules.wvdecryptcustom import WvDecrypt
 import coloredlogs
 
 # Initialize colorama and coloredlogs

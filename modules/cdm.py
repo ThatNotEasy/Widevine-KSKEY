@@ -7,9 +7,9 @@ import binascii
 from google.protobuf.message import DecodeError
 from google.protobuf import text_format
 
-from modules.cdm.protos import wv_proto2_pb2 as wv_proto2
-from modules.cdm.session import Session
-from modules.cdm.key import Key
+from modules.protos import wv_proto2_pb2 as wv_proto2
+from modules.session import Session
+from modules.key import Key
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Random import random
 from Cryptodome.Cipher import PKCS1_OAEP, AES

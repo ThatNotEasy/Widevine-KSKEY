@@ -1,5 +1,6 @@
 import base64
-from modules.cdm import cdm, deviceconfig
+from modules import deviceconfig
+from modules import cdm
 
 class WvDecrypt(object):
     WV_SYSTEM_ID = [

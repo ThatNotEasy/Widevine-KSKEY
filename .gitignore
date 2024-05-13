@@ -3,3 +3,5 @@ modules/original_lic.bin
 modules/parsed_lic.bin
 modules/cdm/devices/android_generic/*
 modules/cdm/devices/chrome_cdm/*
+modules/__pycache__
+services/__pycache__

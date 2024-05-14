@@ -10,6 +10,7 @@ from modules.deviceconfig import device_android_generic
 from modules.pssh import get_pssh
 from modules.wvdecryptcustom import WvDecrypt
 import coloredlogs
+from test import json_data
 
 # Initialize colorama and coloredlogs
 init(autoreset=True)
@@ -33,21 +34,30 @@ def get_service_module(service_name):
 def get_license_keys(pssh, lic_url, service_module):
     service = get_service_module(service_module)
     headers = service.get_headers()
-    params = service.get_params()
-    cookies = service.get_cookies()
     data = service.get_data()
+
+    # Conditional handling of params and cookies based on the existence of these methods in the service module
+    params = getattr(service, 'get_params', lambda: {})()  # Returns {} if get_params is not available
+    cookies = getattr(service, 'get_cookies', lambda: {})()  # Returns {} if get_cookies is not available
 
     wvdecrypt = WvDecrypt(init_data_b64=pssh, cert_data_b64=None, device=device_android_generic)
     challenge = wvdecrypt.get_challenge()
-    data['widevine2Challenge'] = b64encode(challenge).decode()
 
-    response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data)
-    print(response.text)
+    if service_module == "prime":
+        data['widevine2Challenge'] = b64encode(challenge).decode()
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data)
+        license_b64 = response.json()["widevine2License"]["license"]
+        wvdecrypt.update_license(license_b64)
+        Correct, keys = wvdecrypt.start_process()
+        return Correct, keys
 
-    license_b64 = response.json()["widevine2License"]["license"]
-    wvdecrypt.update_license(license_b64)
-    Correct, keys = wvdecrypt.start_process()
-    return Correct, keys
+    elif service_module == "astro":
+        json_data['licenseChallenge'] = b64encode(challenge).decode()
+        response = requests.post(url=lic_url, headers=headers, json=json_data)
+        license_b64 = response.json()["licenseData"][0]
+        wvdecrypt.update_license(license_b64)
+        Correct, keys = wvdecrypt.start_process()
+        return Correct, keys
 
 def print_license_keys(keys):
     for key in keys:

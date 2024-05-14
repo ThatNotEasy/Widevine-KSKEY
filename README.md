@@ -1,28 +1,34 @@
-## WKS-KEYS 2.0
+WKSKEY-2.0
+============
 
-This script is a tool designed to obtain Widevine keys from Media Presentation Description (MPD) URLs. It leverages the Widevine DRM (Digital Rights Management) system to retrieve the necessary keys for protected content playback.
+WKSKEY-2.0 is a tool designed to obtain Widevine keys from Media Presentation Description (MPD) URLs. It uses a modular approach to handle various streaming services, allowing users to easily customize and expand its functionality according to their needs.
 
-### Features
+Main Features
+-------------
 
-- **Command-line Interface (CLI):** Utilizes argparse for parsing command-line arguments, allowing users to specify the MPD URL, Widevine license URL, and optionally provide a Protection System Specific Header (PSSH).
-- **PSSH Generation:** If the MPD URL is provided, the script generates the Protection System Specific Header (PSSH) required for requesting Widevine keys.
-- **License Key Retrieval:** Sends a request to the Widevine license URL with the generated PSSH or provided PSSH (if available) to obtain the license keys.
-- **Output Formatting:** The retrieved license keys are printed to the console in a formatted manner for user convenience.
+- **Modular Service Handling:** WKSKEY-2.0 has a modular structure that separates logic for each streaming service into individual modules. Currently, it supports two services: prime and astro. Each module can handle service-specific DRM requests, including how they handle parameters, cookies, and data sent in requests.
+- **Automatic Key Retrieval:** Using PSSH data provided or extracted from the URL MPD, WKSKEY-2.0 can automatically request and process Widevine keys, simplifying the process of obtaining keys for decryption purposes.
+- **High Flexibility:** Users can easily add support for new services by creating new service modules and integrating them into the main script.
 
-### Dependencies
+Usage
+-----
 
-- **Python Libraries:** Utilizes various Python libraries including requests, pyfiglet, colorama, and coloredlogs for network requests, ASCII art title formatting, colored terminal output, and logging respectively.
-- **Custom Modules:** Imports custom modules such as `cdm`, `deviceconfig`, `pssh`, `wvdecryptcustom`, and `headers` for handling Widevine DRM related functionalities.
+To use WKSKEY-2.0, users need to specify the Widevine license URL and other options through command-line arguments. Here's a basic usage example:
 
-### Usage
+```bash
+python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service prime
+```
 
-Users can run the script from the command line providing necessary arguments such as the Widevine license URL (`-u` or `--license-url`) and optionally the MPD URL (`-m` or `--mpd-url`) or the PSSH (`-p` or `--pssh`).
+## Adding New Services
 
-### Credits
+To add a new service, create a module in the `services` folder with an implementation that handles specific DRM requests from that service. The module should provide methods such as `get_headers()`, `get_params()`, `get_cookies()`, and `get_data()`. After that, the new module can be integrated into `main.py` by adding a special condition for the service in the function `get_license_keys`.
 
-- **Original Author:** The original script was authored by the developer(s) whose details are not mentioned in this version.
-- **Recoder:** This version of the script has been recoded by [ThatNotEasy](https://github.com/ThatNotEasy).
+## Directory Structure
 
-### Note
+- **modules/**: Contains modules used for device configuration and DRM processing.
+- **services/**: A per-service module that provides service-specific logic for handling DRM requests and processing.
+- **main.py**: The main script that coordinates the key retrieval and processing process.
 
-This script is intended for educational and research purposes only. Any unauthorized use for circumventing DRM protections is strictly prohibited.
+## Contribution
+
+Contributions to WKSKEY-2.0 are greatly appreciated. If you have bug fixes, enhancements, or want to add support for new services, please make a pull request.

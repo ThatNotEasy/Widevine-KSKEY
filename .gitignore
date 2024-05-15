@@ -4,3 +4,5 @@ modules/parsed_lic.bin
 modules/devices/*
 modules/__pycache__
 services/__pycache__
+.vscode
+__pycache__

@@ -4,7 +4,7 @@ import argparse
 import requests
 import importlib
 import pyfiglet
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from colorama import init
 from modules.deviceconfig import device_android_generic
 from modules.pssh import get_pssh
@@ -108,6 +108,16 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None):
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
+        
+        elif service_module == "unifi":
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            print(response.text)
+            license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
+            
+            
 
 def print_license_keys(keys):
     for key in keys:

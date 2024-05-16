@@ -11,7 +11,7 @@ from modules.pssh import get_pssh
 from modules.wvdecryptcustom import WvDecrypt
 from services.hbogo import get_license
 from loguru import logger
-import coloredlogs
+import coloredlogs, os
 
 # Initialize colorama and coloredlogs
 init(autoreset=True)
@@ -25,6 +25,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='WKS-KEYS 2.0 - A tool to obtain Widevine keys from MPD URLs')
     parser.add_argument('-u', '--license-url', required=False, help='URL to request Widevine license')
     parser.add_argument('-m', '--mpd-url', help='URL of the Media Presentation Description (MPD)')
+    parser.add_argument('-pp', '--proxy', help='Specify the proxy to use for the requests')
     parser.add_argument('-p', '--pssh', required=False, help='Protection System Specific Header (PSSH)')
     parser.add_argument('-s', '--service', required=True, help='Specify the service module (e.g., prime, netflix)')
     parser.add_argument('-c', '--content-id', required=False, help='Specify the content id for HBOGO modules')
@@ -45,7 +46,7 @@ def get_service_module(service_name):
         logger.error(f"No module named '{service_name}' found in 'services' package")
         sys.exit(1)
 
-def get_license_keys(pssh, lic_url, service_module, content_id=None):
+def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None):
     if service_module == "hbogo":
         if not content_id:
             logger.error("Content ID is required for HBOGO service.")
@@ -55,12 +56,10 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None):
         return True, []  # HBOGO license retrieval does not require other steps, so we return an empty list of keys
     else:
         service = get_service_module(service_module)
-        headers = service.get_headers()
-        data = service.get_data()
-
-        # Conditional handling of params and cookies based on the existence of these methods in the service module
-        params = getattr(service, 'get_params', lambda: {})()  # Returns {} if get_params is not available
-        cookies = getattr(service, 'get_cookies', lambda: {})()  # Returns {} if get_cookies is not available
+        headers = getattr(service, 'get_headers', lambda: {})()
+        data = getattr(service, 'get_data', lambda: {})()
+        params = getattr(service, 'get_params', lambda: {})()
+        cookies = getattr(service, 'get_cookies', lambda: {})()
 
         wvdecrypt = WvDecrypt(init_data_b64=pssh, cert_data_b64=None, device=device_android_generic)
         challenge = wvdecrypt.get_challenge()
@@ -111,7 +110,20 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None):
         
         elif service_module == "unifi":
             response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
-            print(response.text)
+            license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
+        
+        elif service_module == "rakuten":
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
+        
+        elif service_module == "paramountplus":
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
@@ -135,12 +147,11 @@ def main():
         logger.error("No PSSH data provided or extracted.")
         return
 
-    correct, keys = get_license_keys(pssh, lic_url, args.service, args.content_id)
+    correct, keys = get_license_keys(pssh, lic_url, args.service, args.content_id, args.proxy)
     if correct:
         print_license_keys(keys)
     else:
         logger.error("Failed to retrieve valid keys.")
 
 if __name__ == "__main__":
-    os.system('cls' if os.name == 'nt' else 'clear')
     main()

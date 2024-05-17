@@ -11,13 +11,11 @@ from modules.pssh import get_pssh
 from modules.wvdecryptcustom import WvDecrypt
 from services.hbogo import get_license
 from loguru import logger
-import coloredlogs, os
+import coloredlogs, os, json, base64
 
 # Initialize colorama and coloredlogs
 init(autoreset=True)
 coloredlogs.install(level='DEBUG')
-
-# Configure loguru
 logger.remove()
 logger.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>", level="DEBUG")
 
@@ -127,6 +125,15 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
         elif service_module == "paramountplus":
             response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, 
+        
+        elif service_module == "youku":
+            data["licenseRequest"] = base64.b64encode(challenge).decode()
+            response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
+            response_data_bytes = base64.b64decode(response.json()["data"].encode('utf-8'))
+            license_b64 = base64.b64encode(response_data_bytes).decode()
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys

@@ -80,14 +80,14 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
 
         elif service_module == "astro":
             data['licenseChallenge'] = b64encode(challenge).decode()
-            response = requests.post(url=lic_url, headers=headers, json=data)
+            response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
             license_b64 = response.json()["licenseData"][0]
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
         
         elif service_module == "tonton":
-            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
@@ -97,7 +97,7 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             data['streaming-request']['streaming-keys'][0]['challenge'] = b64encode(challenge).decode()
             pssh = data['streaming-request']['streaming-keys'][0]['uri'].replace('data:text/plain;base64,', '')
             logger.debug("PSSH Data: {}", pssh)
-            response = requests.post(url=lic_url, headers=headers, json=data)
+            response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
             license_b64 = response.json()['streaming-response']['streaming-keys'][0]['license']
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
@@ -111,21 +111,21 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             return Correct, keys
         
         elif service_module == "unifi":
-            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
         
         elif service_module == "rakuten":
-            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
         
         elif service_module == "paramountplus":
-            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge)
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()

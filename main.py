@@ -11,7 +11,6 @@ from modules.pssh import get_pssh
 from modules.wvdecryptcustom import WvDecrypt
 from services.hbogo import get_license
 from loguru import logger
-from services.mubi import data
 import coloredlogs, os, json, base64
 
 # Initialize colorama and coloredlogs
@@ -152,6 +151,15 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
         elif service_module == "dazn":
             response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
+        
+        elif service_module == "vdocipher":
+            data["licenseRequest"] = lic_challenge
+            response = requests.post(url=lic_url, params=params, headers=headers, json=data, proxies=proxy)
+            print(response.text)
+            license_b64 = base64.b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys

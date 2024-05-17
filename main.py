@@ -35,9 +35,11 @@ def generate_pssh(mpd_url):
     pssh = get_pssh(mpd_url)
     return pssh
 
-def print_title(title_text):
+def print_title(title_text, proxy=None):
     title = pyfiglet.figlet_format(title_text, font='slant')
     logger.debug(title)
+    if proxy:
+        logger.debug(f"Proxy: {proxy}")
 
 def get_service_module(service_name):
     try:
@@ -102,7 +104,7 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             return Correct, keys
         
         elif service_module == "bitmovin":
-            response = requests.post(url=lic_url, headers=headers, data=challenge)
+            response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
@@ -138,16 +140,21 @@ def print_license_keys(keys):
 
 
 def main():
-    print_title('\nWidevine-KSKEY')
     args = parse_arguments()
+    print_title('\nWidevine-KSKEY', args.proxy)
     lic_url = args.license_url
 
     pssh = args.pssh if args.pssh else generate_pssh(args.mpd_url) if args.mpd_url else None
     if not pssh and args.service != "hbogo":
         logger.error("No PSSH data provided or extracted.")
         return
+    
+    if args.proxy:
+        proxy = {"http": args.proxy, "https": args.proxy}
+    else:
+        proxy = None
 
-    correct, keys = get_license_keys(pssh, lic_url, args.service, args.content_id, args.proxy)
+    correct, keys = get_license_keys(pssh, lic_url, args.service, args.content_id, proxy)
     if correct:
         print_license_keys(keys)
     else:

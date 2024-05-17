@@ -11,6 +11,7 @@ from modules.pssh import get_pssh
 from modules.wvdecryptcustom import WvDecrypt
 from services.hbogo import get_license
 from loguru import logger
+from services.mubi import data
 import coloredlogs, os, json, base64
 
 # Initialize colorama and coloredlogs
@@ -63,6 +64,8 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
 
         wvdecrypt = WvDecrypt(init_data_b64=pssh, cert_data_b64=None, device=device_android_generic)
         challenge = wvdecrypt.get_challenge()
+        lic_challenge = b64encode(challenge).decode()
+        # print(challenge)
 
         if not pssh:
             logger.error("No PSSH data provided or extracted.")
@@ -70,7 +73,7 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
 
         if service_module == "prime":
             data['widevine2Challenge'] = b64encode(challenge).decode()
-            response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data)
+            response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
             license_b64 = response.json()["widevine2License"]["license"]
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
@@ -85,8 +88,9 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             return Correct, keys
         
         elif service_module == "tonton":
-            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
-            license_b64 = b64encode(response.content)
+            response = requests.post(url=lic_url, params=params, headers=headers, data=wvdecrypt.get_challenge(), proxies=proxy)
+            print(response.text)
+            license_b64 = b64encode(response.content).decode()
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
@@ -127,17 +131,30 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             license_b64 = b64encode(response.content)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
-            return Correct, 
+            return Correct, keys
         
         elif service_module == "youku":
-            data["licenseRequest"] = base64.b64encode(challenge).decode()
+            data["licenseRequest"] = base64.b64decode(challenge)
             response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
             response_data_bytes = base64.b64decode(response.json()["data"].encode('utf-8'))
             license_b64 = base64.b64encode(response_data_bytes).decode()
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
+        
+        elif service_module == "mubi":
+            response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+            license_b64 = b64encode(response)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
             
+        elif service_module == "dazn":
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
+            license_b64 = b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
             
 
 def print_license_keys(keys):

@@ -1,5 +1,5 @@
 def get_headers():
-    headers = {} # for this services, do not include content-type
+    headers = {}
     return headers
 
 def get_params():

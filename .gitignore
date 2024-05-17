@@ -1,7 +1,8 @@
 venv/*
 modules/original_lic.bin
 modules/parsed_lic.bin
-modules/devices/*
+modules/devices/android_generic
+modules/devices/chrome_cdm
 modules/__pycache__
 services/__pycache__
 .vscode
@@ -9,3 +10,5 @@ __pycache__
 modules/original_lic
 modules/parsed_lic
 modules/__pycache__
+modules/devices/client_id.bin
+modules/devices/private_key.pem

@@ -163,6 +163,14 @@ def get_license_keys(pssh, lic_url, service_module, content_id=None, proxy=None)
             wvdecrypt.update_license(license_b64)
             Correct, keys = wvdecrypt.start_process()
             return Correct, keys
+        
+        elif service_module == "joyn":
+            response = requests.post(url=lic_url, params=params, headers=headers, data=challenge, proxies=proxy)
+            print(response.text)
+            license_b64 = base64.b64encode(response.content)
+            wvdecrypt.update_license(license_b64)
+            Correct, keys = wvdecrypt.start_process()
+            return Correct, keys
             
 
 def print_license_keys(keys):

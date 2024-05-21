@@ -1,5 +1,3 @@
-import requests
-
 def get_headers():
     headers = {
         'Accept': '*/*',
@@ -20,7 +18,7 @@ def get_headers():
     return headers
 
 def get_params():
-    params = {'version': '1'}
+    params = {}
     return params
 
 def get_data():

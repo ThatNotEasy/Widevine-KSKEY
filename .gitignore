@@ -12,3 +12,4 @@ modules/parsed_lic
 modules/__pycache__
 modules/devices/client_id.bin
 modules/devices/private_key.pem
+modules/devices/google_sdk_gphone64_x86_64_16.1.0_1275dddb_22596_l3.wvd

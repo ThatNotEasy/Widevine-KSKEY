@@ -1,18 +1,18 @@
+from typing import Optional
+
+from Crypto.Random import get_random_bytes
+
+from modules.key import Key
+from modules.license_protocol_pb2 import SignedDrmCertificate
+
+
 class Session:
-    def __init__(self, session_id, init_data, device_config, offline):
-        self.session_id = session_id
-        self.init_data = init_data
-        self.offline = offline
-        self.device_config = device_config
-        self.device_key = None
-        self.session_key = None
-        self.derived_keys = {
-            'enc': None,
-            'auth_1': None,
-            'auth_2': None
-        }
-        self.license_request = None
-        self.license = None
-        self.service_certificate = None
-        self.privacy_mode = None
-        self.keys = []
+    def __init__(self, number: int):
+        self.number = number
+        self.id = get_random_bytes(16)
+        self.service_certificate: Optional[SignedDrmCertificate] = None
+        self.context: dict[bytes, tuple[bytes, bytes]] = {}
+        self.keys: list[Key] = []
+
+
+__all__ = ("Session",)

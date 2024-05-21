@@ -15,8 +15,7 @@ def get_headers():
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'cross-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'content-type': 'application/x-www-form-urlencoded',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
     }
     return headers
 
@@ -25,5 +24,5 @@ def get_params():
     return params
 
 def get_data():
-    data = ''
+    data = None
     return data

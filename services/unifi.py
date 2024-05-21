@@ -7,5 +7,5 @@ def get_params():
     return params
 
 def get_data():
-    data = ''
+    data = None
     return data

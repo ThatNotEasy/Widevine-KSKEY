@@ -128,6 +128,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = b64encode(response.content).decode()
     elif service_name == "newsnow":
         license_b64 = b64encode(response.content).decode()
+    elif service_name == "beinsports":
+        license_b64 = b64encode(response.content).decode()
     else:
         logger.error(f"Service '{service_name}' is not handled.")
         return False, None

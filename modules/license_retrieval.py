@@ -1,5 +1,4 @@
-import sys
-import requests
+import sys, requests, glob, os
 from base64 import b64encode, b64decode
 from loguru import logger
 from modules.utils import get_service_module
@@ -9,6 +8,13 @@ from modules.cdm import Cdm
 from services.hbogo import get_license
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+def load_first_wvd_file(directory="."):
+    wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
+    if wvd_files:
+        return Device.load(wvd_files[0])
+    else:
+        raise FileNotFoundError("No .wvd files found in the directory.")
 
 def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     logger.debug(f"Getting license keys for service: {service_name}")
@@ -35,7 +41,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     # logger.debug(f"Params: {params}")
     # logger.debug(f"Cookies: {cookies}")
 
-    device = Device.load('modules/devices/google_sdk_gphone_x86_64_17.0.0_7dab2a59_22596_l1.wvd')
+    device = load_first_wvd_file()
     cdm = Cdm.from_device(device)
     session_id = cdm.open()
     challenge = cdm.get_license_challenge(session_id, PSSH(pssh))

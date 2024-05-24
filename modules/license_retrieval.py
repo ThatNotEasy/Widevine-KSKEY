@@ -30,12 +30,12 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     params = getattr(service_module, 'get_params', lambda: {})()
     cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
-    logger.debug(f"Headers: {headers}")
-    logger.debug(f"Data: {data}")
-    logger.debug(f"Params: {params}")
-    logger.debug(f"Cookies: {cookies}")
+    # logger.debug(f"Headers: {headers}")
+    # logger.debug(f"Data: {data}")
+    # logger.debug(f"Params: {params}")
+    # logger.debug(f"Cookies: {cookies}")
 
-    device = Device.load('modules/devices/google_sdk_gphone64_x86_64_16.1.0_1275dddb_22596_l3.wvd')
+    device = Device.load('modules/devices/google_sdk_gphone_x86_64_17.0.0_7dab2a59_22596_l1.wvd')
     cdm = Cdm.from_device(device)
     session_id = cdm.open()
     challenge = cdm.get_license_challenge(session_id, PSSH(pssh))
@@ -60,7 +60,14 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         data["licenseRequest"] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy, verify=False)
     elif service_name == "viaplay":
-        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy, verify=False)
+        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+    elif service_name == "peacock":
+        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge_b64, proxies=proxy)
+    elif service_name == "rakuten":
+        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+    elif service_name == "amazon":
+        data['licenseChallenge'] = challenge_b64
+        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
@@ -92,6 +99,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = b64encode(response.content).decode()
     elif service_name == "viaplay":
         license_b64 = b64encode(response.content).decode()
+    elif service_name == "peacock":
+        license_b64 = b64encode(response.content).decode()
+    elif service_name == "amazon":
+        license_b64 = response.json()["license"]
     else:
         logger.error(f"Service '{service_name}' is not handled.")
         return False, None

@@ -4,6 +4,7 @@ from typing import Optional
 import pyfiglet
 from colorama import Fore, Style
 import importlib
+from modules.pssh import get_pssh
 from modules.initialization import initialize
 
 session, logging = initialize()
@@ -15,6 +16,9 @@ def get_binary_path(*names: str) -> Optional[Path]:
         if path:
             return Path(path)
     return None
+
+def generate_pssh(mpd_url):
+    return get_pssh(mpd_url)
 
 def print_title(title_text, proxy=None):
     title = pyfiglet.figlet_format(title_text, font='slant')

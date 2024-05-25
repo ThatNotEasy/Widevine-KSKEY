@@ -3,8 +3,7 @@ from colorama import init, Fore, Style
 from modules.downloader import drm_downloader, validate_keys
 from modules.initialization import initialize
 from modules.arg_parser import parse_arguments
-from modules.pssh import find_pssh_in_mpd
-from modules.utils import print_title, print_license_keys
+from modules.utils import print_title, print_license_keys, generate_pssh
 from modules.license_retrieval import get_license_keys
 
 def clear_screen():
@@ -16,39 +15,21 @@ def colored_input(prompt, color):
     print(color + prompt + Style.RESET_ALL, end='')
     return input()
 
-def handle_pssh(args, logger):
-    """Handle retrieval or input of PSSH data."""
-    if args.pssh:
-        return args.pssh
-    elif args.mpd_url:
-        pssh_data = find_pssh_in_mpd(args.mpd_url)
-        if pssh_data:
-            return pssh_data[0]  # Assuming there might be multiple entries
-        else:
-            logger.info("No PSSH data found in the MPD.")
-            if colored_input("Do you want to enter PSSH manually? (Y/N): ", Fore.YELLOW).lower() == 'y':
-                pssh = colored_input("Enter PSSH manually: ", Fore.CYAN)
-                if pssh:
-                    return pssh
-            logger.error("No PSSH data provided by the user.")
-    else:
-        logger.error("No PSSH or MPD URL provided.")
-    return None
 
 def main():
-    init(autoreset=True)
-    clear_screen()
+    init(autoreset=True)  # Ensure Colorama is initialized to auto-reset style after each print.
+    clear_screen()  # This function needs to be defined to clear the console.
 
     try:
-        args = parse_arguments()
+        args = parse_arguments()  # Ensure this function is implemented to parse CLI arguments.
     except Exception as e:
         print(f"{Fore.RED}Error parsing arguments: {e}{Style.RESET_ALL}")
         sys.exit(1)
 
-    session, logger = initialize()
-    print_title('Widevine-KSKEY', args.proxy)
+    session, logger = initialize()  # Make sure initialize function returns a session object and a logger.
+    print_title('Widevine-KSKEY', args.proxy)  # Define or import print_title function.
 
-    pssh = handle_pssh(args, logger)
+    pssh = args.pssh or (generate_pssh(args.mpd_url) if args.mpd_url else None)
     if not pssh:
         logger.error("No PSSH data provided or extracted.")
         sys.exit(1)

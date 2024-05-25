@@ -4,6 +4,6 @@ services/__pycache__
 .vscode
 __pycache__
 google_sdk_gphone64_x86_64_16.1.0_1275dddb_22596_l3.wvd
-logs/
 content/
+logs/*
 PythonImportHelper-v2-Completion.json

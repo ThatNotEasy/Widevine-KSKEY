@@ -21,13 +21,21 @@ python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service prime
 
 ## Adding New Services
 
-To add a new service, create a module in the `services` folder with an implementation that handles specific DRM requests from that service. The module should provide methods such as `get_headers()`, `get_params()`, `get_cookies()`, and `get_data()`. After that, the new module can be integrated into `main.py` by adding a special condition for the service in the function `get_license_keys`.
+To add a new service, create a module in the `services` folder with an implementation that handles specific DRM requests from that service. The module should provide methods such as `get_headers()`, `get_params()`, `get_cookies()`, and `get_data()`. After that, the new module can be integrated into `license_retrieval.py` by adding a special condition for the service in the function `get_license_keys`.
 
 ## Directory Structure
 
 - **modules/**: Contains modules used for device configuration and DRM processing.
 - **services/**: A per-service module that provides service-specific logic for handling DRM requests and processing.
 - **main.py**: The main script that coordinates the key retrieval and processing process.
+
+## Adding Features
+
+- Parses arguments for URLs, PSSH, and proxy settings.
+- Extracts PSSH from MPD URLs.
+- Retrieves license keys using provided URLs and services.
+- Supports user input for PSSH and other required parameters.
+- Downloads content using the extracted license keys.
 
 ## Contribution
 

@@ -1,33 +1,35 @@
 import sys, requests, glob, os
 from base64 import b64encode, b64decode
-from loguru import logger
 from modules.utils import get_service_module
-from modules.pssh import PSSH
-from modules.device import Device
-from modules.cdm import Cdm
+from pywidevine.pssh import PSSH
+from pywidevine.device import Device
+from pywidevine.cdm import Cdm
 from services.hbogo import get_license
+from modules.initialization import initialize
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+session, logging = initialize()
 
 def load_first_wvd_file(directory="."):
     wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
     if wvd_files:
         return Device.load(wvd_files[0])
     else:
-        raise FileNotFoundError("No .wvd files found in the directory.")
+        logging.error("No .wvd files found in the directory.")
 
 def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
-    logger.debug(f"Getting license keys for service: {service_name}")
-    logger.debug(f"PSSH: {pssh}")
-    logger.debug(f"License URL: {lic_url}")
+    logging.info(f"Getting license keys for service: {service_name}")
+    logging.info(f"PSSH: {pssh}")
+    logging.info(f"License URL: {lic_url}")
 
     if service_name == "hbogo":
         if not content_id:
-            logger.error("Content ID is required for HBOGO service.")
+            logging.error("Content ID is required for HBOGO service.")
             return False, None
         data = get_license(content_id)
-        logger.debug(f"License data: {data}")
-        return True, []  # HBOGO license retrieval does not require other steps, so we return an empty list of keys
+        logging.debug(f"License data: {data}")
+        return True, []
 
     service_module = get_service_module(service_name)
     
@@ -36,10 +38,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     params = getattr(service_module, 'get_params', lambda: {})()
     cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
-    # logger.debug(f"Headers: {headers}")
-    # logger.debug(f"Data: {data}")
-    # logger.debug(f"Params: {params}")
-    # logger.debug(f"Cookies: {cookies}")
+    # logging.debug(f"Headers: {headers}")
+    # logging.debug(f"Data: {data}")
+    # logging.debug(f"Params: {params}")
+    # logging.debug(f"Cookies: {cookies}")
 
     device = load_first_wvd_file()
     cdm = Cdm.from_device(device)
@@ -48,12 +50,13 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     challenge_b64 = b64encode(challenge).decode()
     
     if not pssh:
-        logger.error("No PSSH data provided or extracted.")
+        logging.error("No PSSH data provided or extracted.")
         return False, None
 
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxy)
+        print(response.text)
     elif service_name in ["astro", "apple"]:
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
@@ -74,12 +77,14 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "amazon":
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
+    elif service_name == "viki":
+        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
 
     if response.status_code != 200:
-        logger.error(f"Failed to retrieve license: {response.text}")
+        logging.error(f"Failed to retrieve license: {response.text}")
         return False, None
 
     if service_name == "prime":
@@ -109,8 +114,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = b64encode(response.content).decode()
     elif service_name == "amazon":
         license_b64 = response.json()["license"]
+    elif service_name == "viki":
+        license_b64 = b64encode(response.content).decode()
     else:
-        logger.error(f"Service '{service_name}' is not handled.")
+        logging.error(f"Service '{service_name}' is not handled.")
         return False, None
 
     cdm.parse_license(session_id, license_b64)
@@ -119,6 +126,12 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     for key in cdm.get_keys(session_id):
         if key.type != "SIGNING":
             returned_keys.append(f"--key {key.kid.hex}:{key.key.hex()}")
-            cached_keys += f"{key.kid.hex}:{key.key.hex()}\n"
+            cached_keys += f"--key {key.kid.hex}:{key.key.hex()}\n"
     cdm.close(session_id)
+
+    # output_file = "logs/keys.txt"
+    # with open(output_file, "w") as file:
+    #     file.write(cached_keys)
+
+    # logging.info(f"Keys saved to {output_file}")
     return returned_keys

@@ -1,0 +1,284 @@
+{
+    "tracks": [
+        {
+            "track_type": "General",
+            "count": "349",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "General",
+            "other_kind_of_stream": [
+                "General"
+            ],
+            "stream_identifier": "0",
+            "count_of_video_streams": "1",
+            "count_of_audio_streams": "1",
+            "video_format_list": "AVC",
+            "video_format_withhint_list": "AVC",
+            "codecs_video": "AVC",
+            "audio_format_list": "AAC LC",
+            "audio_format_withhint_list": "AAC LC",
+            "audio_codecs": "AAC LC",
+            "audio_channels_total": "2",
+            "complete_name": "content\\testing.mp4",
+            "folder_name": "content",
+            "file_name_extension": "testing.mp4",
+            "file_name": "testing",
+            "file_extension": "mp4",
+            "format": "MPEG-4",
+            "other_format": [
+                "MPEG-4"
+            ],
+            "format_extensions_usually_used": "braw mov mp4 m4v m4a m4b m4p m4r 3ga 3gpa 3gpp 3gp 3gpp2 3g2 k3g jpm jpx mqv ismv isma ismt f4a f4b f4v",
+            "commercial_name": "MPEG-4",
+            "format_profile": "Base Media",
+            "internet_media_type": "video/mp4",
+            "codec_id": "isom",
+            "other_codec_id": [
+                "isom (isom/iso2/avc1/mp41)"
+            ],
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "codecid_compatible": "isom/iso2/avc1/mp41",
+            "file_size": 242322743,
+            "other_file_size": [
+                "231 MiB",
+                "231 MiB",
+                "231 MiB",
+                "231 MiB",
+                "231.1 MiB"
+            ],
+            "duration": 3590400,
+            "other_duration": [
+                "59 min 50 s",
+                "59 min 50 s 400 ms",
+                "59 min 50 s",
+                "00:59:50.400",
+                "00:59:50:07",
+                "00:59:50.400 (00:59:50:07)"
+            ],
+            "overall_bit_rate": 539935,
+            "other_overall_bit_rate": [
+                "540 kb/s"
+            ],
+            "frame_rate": "24.000",
+            "other_frame_rate": [
+                "24.000 FPS"
+            ],
+            "frame_count": "86167",
+            "stream_size": 2187386,
+            "other_stream_size": [
+                "2.09 MiB (1%)",
+                "2 MiB",
+                "2.1 MiB",
+                "2.09 MiB",
+                "2.086 MiB",
+                "2.09 MiB (1%)"
+            ],
+            "proportion_of_this_stream": "0.00903",
+            "headersize": "40",
+            "datasize": "240135365",
+            "footersize": "2187338",
+            "isstreamable": "No",
+            "recorded_date": "2024-05-25 09:16:34.6215897+08:00",
+            "file_creation_date": "2024-05-25 01:16:34.645 UTC",
+            "file_creation_date__local": "2024-05-25 09:16:34.645",
+            "file_last_modification_date": "2024-05-25 01:16:39.917 UTC",
+            "file_last_modification_date__local": "2024-05-25 09:16:39.917",
+            "writing_application": "Lavf60.16.100",
+            "other_writing_application": [
+                "Lavf60.16.100"
+            ]
+        },
+        {
+            "track_type": "Video",
+            "count": "382",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "Video",
+            "other_kind_of_stream": [
+                "Video"
+            ],
+            "stream_identifier": "0",
+            "streamorder": "0",
+            "track_id": 1,
+            "other_track_id": [
+                "1"
+            ],
+            "format": "AVC",
+            "other_format": [
+                "AVC"
+            ],
+            "format_info": "Advanced Video Codec",
+            "format_url": "http://developers.videolan.org/x264.html",
+            "commercial_name": "AVC",
+            "format_profile": "High@L4",
+            "format_settings": "CABAC / 4 Ref Frames",
+            "format_settings__cabac": "Yes",
+            "other_format_settings__cabac": [
+                "Yes"
+            ],
+            "format_settings__reference_frames": 4,
+            "other_format_settings__reference_frames": [
+                "4 frames"
+            ],
+            "internet_media_type": "video/H264",
+            "codec_id": "avc1",
+            "codec_id_info": "Advanced Video Coding",
+            "duration": 3590292,
+            "other_duration": [
+                "59 min 50 s",
+                "59 min 50 s 292 ms",
+                "59 min 50 s",
+                "00:59:50.292",
+                "00:59:50:07",
+                "00:59:50.292 (00:59:50:07)"
+            ],
+            "bit_rate": 343071,
+            "other_bit_rate": [
+                "343 kb/s"
+            ],
+            "width": 852,
+            "other_width": [
+                "852 pixels"
+            ],
+            "height": 480,
+            "other_height": [
+                "480 pixels"
+            ],
+            "stored_width": "864",
+            "sampled_width": "852",
+            "sampled_height": "480",
+            "pixel_aspect_ratio": "1.002",
+            "display_aspect_ratio": "1.779",
+            "other_display_aspect_ratio": [
+                "16:9"
+            ],
+            "original_display_aspect_ratio": "1.778",
+            "other_original_display_aspect_ratio": [
+                "16:9"
+            ],
+            "rotation": "0.000",
+            "frame_rate_mode": "CFR",
+            "other_frame_rate_mode": [
+                "Constant"
+            ],
+            "framerate_mode_original": "VFR",
+            "frame_rate": "24.000",
+            "other_frame_rate": [
+                "24.000 FPS"
+            ],
+            "framerate_num": "24",
+            "framerate_den": "1",
+            "frame_count": "86167",
+            "color_space": "YUV",
+            "chroma_subsampling": "4:2:0",
+            "other_chroma_subsampling": [
+                "4:2:0"
+            ],
+            "bit_depth": 8,
+            "other_bit_depth": [
+                "8 bits"
+            ],
+            "scan_type": "Progressive",
+            "other_scan_type": [
+                "Progressive"
+            ],
+            "bits__pixel_frame": "0.035",
+            "stream_size": 153965756,
+            "other_stream_size": [
+                "147 MiB (64%)",
+                "147 MiB",
+                "147 MiB",
+                "147 MiB",
+                "146.8 MiB",
+                "147 MiB (64%)"
+            ],
+            "proportion_of_this_stream": "0.63537",
+            "writing_library": "Vision-264-core V0.9.5.0",
+            "other_writing_library": [
+                "Vision-264-core V0.9.5.0"
+            ],
+            "encoded_library_name": "Vision-264-core V0.9.5.0",
+            "encoding_settings": "CAE",
+            "codec_configuration_box": "avcC"
+        },
+        {
+            "track_type": "Audio",
+            "count": "285",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "Audio",
+            "other_kind_of_stream": [
+                "Audio"
+            ],
+            "stream_identifier": "0",
+            "streamorder": "1",
+            "track_id": 2,
+            "other_track_id": [
+                "2"
+            ],
+            "format": "AAC",
+            "other_format": [
+                "AAC LC"
+            ],
+            "format_info": "Advanced Audio Codec Low Complexity",
+            "commercial_name": "AAC",
+            "format_additionalfeatures": "LC",
+            "codec_id": "mp4a-40-2",
+            "duration": 3590400,
+            "other_duration": [
+                "59 min 50 s",
+                "59 min 50 s 400 ms",
+                "59 min 50 s",
+                "00:59:50.400",
+                "00:59:50.400"
+            ],
+            "bit_rate_mode": "CBR",
+            "other_bit_rate_mode": [
+                "Constant"
+            ],
+            "bit_rate": 192000,
+            "other_bit_rate": [
+                "192 kb/s"
+            ],
+            "channel_s": 2,
+            "other_channel_s": [
+                "2 channels"
+            ],
+            "channel_positions": "Front: L R",
+            "other_channel_positions": [
+                "2/0/0"
+            ],
+            "channel_layout": "L R",
+            "samples_per_frame": "1024",
+            "sampling_rate": 48000,
+            "other_sampling_rate": [
+                "48.0 kHz"
+            ],
+            "samples_count": "172339200",
+            "frame_rate": "46.875",
+            "other_frame_rate": [
+                "46.875 FPS (1024 SPF)"
+            ],
+            "frame_count": "168300",
+            "compression_mode": "Lossy",
+            "other_compression_mode": [
+                "Lossy"
+            ],
+            "stream_size": 86169601,
+            "other_stream_size": [
+                "82.2 MiB (36%)",
+                "82 MiB",
+                "82 MiB",
+                "82.2 MiB",
+                "82.18 MiB",
+                "82.2 MiB (36%)"
+            ],
+            "proportion_of_this_stream": "0.35560",
+            "default": "Yes",
+            "other_default": [
+                "Yes"
+            ],
+            "alternate_group": 1,
+            "other_alternate_group": [
+                "1"
+            ]
+        }
+    ]
+}

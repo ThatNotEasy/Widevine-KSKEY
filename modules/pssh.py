@@ -477,13 +477,13 @@ def get_pssh(mpd_url):
                             if pssh:
                                 return pssh
     except Exception as e:
-        print(f"Error processing the MPD file: {e}")
+        print(f"Error processing the MPD file")
         pssh = input('Unable to find PSSH in MPD. Enter PSSH manually or check the MPD URL: ')
 
     if not pssh:
         pssh = input('PSSH not found. Enter PSSH manually: ')
-
     return pssh
+
 
 def fetch_mpd_content(url):
     """Fetch MPD content from a URL."""

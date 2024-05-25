@@ -66,10 +66,13 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
     elif service_name in ["vdocipher", "newsnow"]:
         data["licenseRequest"] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy, verify=False)
+        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name in ["viaplay", "peacock", "rakuten", "viki", "paramountplus"]:
         data = challenge
         response = requests.post(url=lic_url, headers=headers, params=params, data=data, proxies=proxy)
+    elif service_name == "unifi":
+        cert_path = 'playtv_unifi_com_my.crt'
+        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     

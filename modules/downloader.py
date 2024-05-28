@@ -108,7 +108,7 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
     for key in keys:
         command += f' --key {key}'
     
-    command += f' -mt -M {output_format} -sv {save_video_quality} -sa {save_audio_quality}'
+    command += f' -mt -M {output_format} -sv {save_video_quality} -sa {save_audio_quality} -ss all'
     logger.info(f"{Fore.GREEN}Running command: {Fore.RED}{command}{Fore.RESET}")
     logger.info(f"{Fore.MAGENTA}Please be patient ..{Fore.RESET}")
 

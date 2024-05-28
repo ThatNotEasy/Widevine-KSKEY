@@ -103,7 +103,8 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
     temp_dir = "content"
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    
+
+    # SET GLOBAL VARIABLE ON ENVIRONMENT
     command = f'N_m3u8DL-RE.exe "{url}" --save-dir {temp_dir} --save-name {save_name}'
     for key in keys:
         command += f' --key {key}'

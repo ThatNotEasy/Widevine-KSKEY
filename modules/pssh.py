@@ -447,10 +447,9 @@ class PSSH:
 __all__ = ("PSSH",)
 
 def get_pssh(mpd_url):
-    pssh = ''
     try:
         # Fetch MPD file from URL
-        response = requests.get(mpd_url)
+        response = requests.get(mpd_url, verify=False)
         response.raise_for_status()  # Raises HTTPError for bad responses
         # Parse the XML
         mpd = xmltodict.parse(response.text)
@@ -476,8 +475,25 @@ def get_pssh(mpd_url):
                             pssh = content_protection.get('cenc:pssh', '')
                             if pssh:
                                 return pssh
+        try:
+            response = requests.get(mpd_url)
+            data = response.text
+
+            widevine_regex = r'KEYFORMAT="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",URI="data:text/plain;base64,([^"]+)"'
+            widevine_match = re.search(widevine_regex, data)
+            widevine_pssh_base64 = widevine_match.group(1) if widevine_match else None
+            
+            if not widevine_pssh_base64:
+                raise ValueError("Widevine PSSH not found in the manifest.")
+            
+            return widevine_pssh_base64
+        except Exception as e:
+            print(f"Error extracting Widevine PSSH from M3U8: {e}")
+            print("Widevine PSSH not found. Please insert Widevine PSSH manually.")
+            widevine_pssh_base64 = input("Insert Widevine PSSH manually: ")
+            return widevine_pssh_base64
     except Exception as e:
-        print(f"Error processing the MPD file")
+        print(f"Error processing the MPD file: {e}")
         pssh = input('Unable to find PSSH in MPD. Enter PSSH manually or check the MPD URL: ')
 
     if not pssh:

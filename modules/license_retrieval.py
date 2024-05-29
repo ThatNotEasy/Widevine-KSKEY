@@ -5,6 +5,8 @@ from pywidevine.pssh import PSSH
 from pywidevine.device import Device
 from pywidevine.cdm import Cdm
 from services.hbogo import get_license
+from modules.pssh import get_pssh
+from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from modules.initialization import initialize
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -38,10 +40,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     params = getattr(service_module, 'get_params', lambda: {})()
     cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
-    logging.debug(f"Headers: {headers}")
-    logging.debug(f"Data: {data}")
-    logging.debug(f"Params: {params}")
-    logging.debug(f"Cookies: {cookies}")
+    # logging.debug(f"Headers: {headers}")
+    # logging.debug(f"Data: {data}")
+    # logging.debug(f"Params: {params}")
+    # logging.debug(f"Cookies: {cookies}")
 
     device = load_first_wvd_file()
     cdm = Cdm.from_device(device)
@@ -58,9 +60,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxy)
     elif service_name in ["astro", "apple", "amazon"]:
         data['licenseChallenge'] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, cookies=cookies,json=data, proxies=proxy)
-    elif service_name == "tonton":
-        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
+    elif service_name =="tonton":
+        response = requests.post(url=lic_url, headers=headers ,data=challenge, proxies=proxy)
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge)
         response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
@@ -71,6 +73,17 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
     elif service_name == "unifi":
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
+    elif service_name == "skyshowtime":
+        token_url = 'https://ovp.skyshowtime.com/auth/tokens'
+        vod_url = 'https://ovp.skyshowtime.com/video/playouts/vod'
+        region = cookies['activeTerritory']
+        user_token = get_user_token(token_url, cookies, region)
+        video_url = content_id
+        vod_request = get_vod_request(vod_url, region, user_token, video_url)
+        license_url = vod_request['protection']['licenceAcquisitionUrl']
+        manifest_url = vod_request['asset']['endpoints'][0]['url']
+        pssh = get_pssh(manifest_url)
+        response = requests.post(url=license_url, headers=headers, data=challenge, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
@@ -83,7 +96,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["widevine2License"]["license"]
     elif service_name == "astro":
         license_b64 = response.json()["licenseData"][0]
-    elif service_name in ["tonton", "bitmovin", "unifi", "rakuten", "paramountplus", "joyn", "beinsports", "viki"]:
+    elif service_name in ["skyshowtime","tonton", "bitmovin", "unifi", "rakuten", "paramountplus", "joyn", "beinsports", "viki"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name == "apple":
         license_b64 = response.json()['streaming-response']['streaming-keys'][0]['license']

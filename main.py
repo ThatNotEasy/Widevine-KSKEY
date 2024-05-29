@@ -3,7 +3,8 @@ from colorama import init, Fore, Style
 from modules.downloader import drm_downloader, validate_keys
 from modules.initialization import initialize
 from modules.arg_parser import parse_arguments
-from modules.utils import print_title, print_license_keys, generate_pssh
+from modules.pssh import get_pssh
+from modules.utils import print_title, print_license_keys
 from modules.license_retrieval import get_license_keys
 
 def clear_screen():
@@ -29,22 +30,25 @@ def main():
     session, logger = initialize()  # Make sure initialize function returns a session object and a logger.
     print_title('Widevine-KSKEY', args.proxy)  # Define or import print_title function.
 
-    pssh = args.pssh or (generate_pssh(args.mpd_url) if args.mpd_url else None)
+    pssh = args.pssh or (get_pssh(args.mpd_url) if args.mpd_url else None)
     if not pssh:
         logger.error("No PSSH data provided or extracted.")
         sys.exit(1)
 
     proxy = {"http": args.proxy, "https": args.proxy} if args.proxy else None
-    keys = get_license_keys(pssh, args.license_url, args.service, args.content_id, proxy)
+    keys = get_license_keys(pssh, args.license_url, args.service, args.content_id or args.mpd_url, proxy)
     if keys:
         print_license_keys(keys)
         print()
         proceed = colored_input("Continue with download? (Y/N): ", Fore.YELLOW).lower().strip()
+        args.mpd_url = colored_input("Enter Manifest URL: ", Fore.YELLOW)
         if proceed == 'y':
             save_name = colored_input("Enter the output name (Without Extension): ", Fore.CYAN).strip()
             if not save_name:
                 logger.error("Invalid save name provided.")
                 return
+            if not args.mpd_url:
+                logger.error("Invalid Manifest URL.")
 
             validated_keys = validate_keys(keys)
             if not validated_keys:

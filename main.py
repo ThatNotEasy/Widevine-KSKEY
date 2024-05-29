@@ -41,30 +41,34 @@ def main():
         print_license_keys(keys)
         print()
         proceed = colored_input("Continue with download? (Y/N): ", Fore.YELLOW).lower().strip()
-        args.mpd_url = colored_input("Enter Manifest URL: ", Fore.YELLOW)
-        if proceed == 'y':
-            save_name = colored_input("Enter the output name (Without Extension): ", Fore.CYAN).strip()
-            if not save_name:
-                logger.error("Invalid save name provided.")
-                return
-            if not args.mpd_url:
-                logger.error("Invalid Manifest URL.")
-
-            validated_keys = validate_keys(keys)
-            if not validated_keys:
-                logger.error("No valid keys available to proceed with the download.")
-                return
-
-            service = args.service if args.service else colored_input("Enter the service name: ", Fore.CYAN).strip()
-            successful = drm_downloader(args.mpd_url, save_name, validated_keys, output_format='mp4')
-            if successful:
-                logger.info("Content downloaded successfully.")
-            else:
-                logger.error("Content download failed.")
-        elif proceed == 'n':
+        if proceed == 'n':
             logger.info("Download cancelled by the user.")
-        else:
+            sys.exit(0)
+        elif proceed != 'y':
             logger.warning("Invalid input: Please enter Y for yes or N for no.")
+            return
+
+        args.mpd_url = colored_input("Enter Manifest URL: ", Fore.YELLOW)
+        save_name = colored_input("Enter the output name (Without Extension): ", Fore.CYAN).strip()
+        if not save_name:
+            logger.error("Invalid save name provided.")
+            return
+
+        if not args.mpd_url:
+            logger.error("Invalid Manifest URL.")
+            return
+
+        validated_keys = validate_keys(keys)
+        if not validated_keys:
+            logger.error("No valid keys available to proceed with the download.")
+            return
+
+        service = args.service if args.service else colored_input("Enter the service name: ", Fore.CYAN).strip()
+        successful = drm_downloader(args.mpd_url, save_name, validated_keys, output_format='mp4')
+        if successful:
+            logger.info("Content downloaded successfully.")
+        else:
+            logger.error("Content download failed.")
     else:
         logger.error("Failed to retrieve valid keys.")
 

@@ -1,4 +1,4 @@
-import sys, requests, glob, os
+import sys, requests, glob, os, base64
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module
 from pywidevine.pssh import PSSH
@@ -8,8 +8,6 @@ from services.hbogo import get_license
 from modules.pssh import get_pssh
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from modules.initialization import initialize
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 session, logging = initialize()
 
@@ -62,15 +60,15 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name =="tonton":
-        response = requests.post(url=lic_url, headers=headers ,data=challenge, proxies=proxy)
+        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge)
         response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
     elif service_name in ["vdocipher", "newsnow"]:
         data["licenseRequest"] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
-    elif service_name in ["viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll"]:
-        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
+    elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll"]:
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "unifi":
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
     elif service_name == "skyshowtime":
@@ -107,6 +105,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["amazon", "crunchyroll"]:
         license_b64 = response.json()["license"]
+    elif service_name == "filmo":
+        print(response.text)
+        license_b64 = base64.b64encode(response.content)
+        print(license_b64)
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

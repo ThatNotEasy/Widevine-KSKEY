@@ -9,3 +9,4 @@ def parse_arguments():
     parser.add_argument('-s', '--service', required=True, help='Specify the service module (e.g., prime, netflix)')
     parser.add_argument('-c', '--content-id', required=False, help='Specify the content id for HBOGO modules')
     return parser.parse_args()
+

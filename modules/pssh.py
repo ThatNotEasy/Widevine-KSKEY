@@ -5,6 +5,7 @@ import base64
 import requests
 import uuid
 import struct
+import m3u8
 import requests, xmltodict, json
 import binascii
 import string, re
@@ -12,14 +13,17 @@ from io import BytesIO
 from typing import Optional, Union
 from uuid import UUID
 from xml.etree.ElementTree import XML
-
+import xml.etree.ElementTree as ET
+from modules.logging import setup_logging
 import construct
 from construct import Container
 from google.protobuf.message import DecodeError
 from pymp4.parser import Box
-
+from urllib.parse import urlparse, parse_qs
 from modules.license_protocol_pb2 import WidevinePsshData
+from colorama import Fore
 
+logging = setup_logging()
 
 class PSSH:
     """
@@ -446,67 +450,45 @@ class PSSH:
 
 __all__ = ("PSSH",)
 
-def get_pssh(mpd_url):
-    try:
-        # Fetch MPD or M3U8 file from URL
-        response = requests.get(mpd_url, verify=False)
-        response.raise_for_status()  # Raises HTTPError for bad responses
-
-        content_type = response.headers.get('Content-Type', '')
-
-        if 'application/xml' in content_type or 'text/xml' in content_type:
-            # Parse the XML
-            mpd = xmltodict.parse(response.text)
-            # Navigate through the XML structure
-            periods = mpd['MPD']['Period']
-            if not isinstance(periods, list):
-                periods = [periods]  # Ensure periods is a list even if there's only one
-
-            for period in periods:
-                adaptation_sets = period['AdaptationSet']
-                if not isinstance(adaptation_sets, list):
-                    adaptation_sets = [adaptation_sets]  # Ensure adaptation_sets is a list
-                
-                for ad_set in adaptation_sets:
-                    if ad_set.get('@mimeType') == 'video/mp4':
-                        content_protections = ad_set.get('ContentProtection', [])
-                        if not isinstance(content_protections, list):
-                            content_protections = [content_protections]  # Ensure it's a list
-                        
-                        for content_protection in content_protections:
-                            if content_protection.get('@schemeIdUri', '').lower() == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed":
-                                pssh = content_protection.get('cenc:pssh', '')
-                                if pssh:
-                                    return pssh
-
-        # Fallback: Try to extract using BeautifulSoup
-        manifest = response.content
-        pssh_elements = BeautifulSoup(manifest, 'xml').findAll('cenc:pssh')
-        if pssh_elements and len(pssh_elements) > 0:
-            return pssh_elements[0].text
-
-        # Try to extract Widevine PSSH from M3U8
-        widevine_regex = r'KEYFORMAT="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",URI="data:text/plain;base64,([^"]+)"'
-        widevine_match = re.search(widevine_regex, response.text)
-        widevine_pssh_base64 = widevine_match.group(1) if widevine_match else None
-        
-        if not widevine_pssh_base64:
-            raise ValueError("Widevine PSSH not found in the manifest.")
-        
-        return widevine_pssh_base64
-
-    except Exception as e:
-        print(f"Error processing the MPD or M3U8 file: {e}")
-        pssh = input('Unable to find PSSH in the manifest. Enter PSSH manually or check the URL: ')
-    
-    return pssh
-
-
-def fetch_mpd_content(url):
-    """Fetch MPD content from a URL."""
+def fetch_manifest(url):
+    logging.info(f"Fetching manifest from URL: {Fore.RED}{url}{Fore.RESET}")
     response = requests.get(url)
-    response.raise_for_status()  # Will raise an exception for HTTP errors
+    response.raise_for_status()
     return response.text
+
+def extract_pssh_from_mpd(manifest):
+    try:
+        # Regex to find the PSSH data within the ContentProtection element for Widevine
+        pssh_pattern = re.compile(
+            r'<ContentProtection\s+schemeIdUri="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed">.*?<cenc:pssh>(.*?)</cenc:pssh>',
+            re.DOTALL
+        )
+        pssh_matches = pssh_pattern.findall(manifest)
+        if not pssh_matches:
+            logging.warning("No PSSH data found in MPD manifest.")
+            return []
+
+        return pssh_matches
+    except Exception as e:
+        logging.error(f"Error extracting PSSH from MPD manifest: {e}")
+        raise
+
+def extract_pssh(url):
+    manifest = fetch_manifest(url)
+    if '.mpd' in url:
+        return extract_pssh_from_mpd(manifest)
+    elif '.m3u8' in url:
+        return []
+    else:
+        raise ValueError(f"Unsupported manifest type for URL: {url}")
+
+def get_pssh(url):
+    try:
+        pssh_data_mpd = extract_pssh(url)
+        pssh_data_encoded = [base64.b64encode(base64.b64decode(pssh)).decode('utf-8') for pssh in pssh_data_mpd]
+        return pssh_data_encoded[0]
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
 def extract_widevine_pssh_base64_from_mpd(mpd_content):
     """

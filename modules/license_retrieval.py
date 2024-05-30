@@ -1,4 +1,4 @@
-import sys, requests, glob, os, base64
+import sys, requests, glob, os, base64, asyncio
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module
 from pywidevine.pssh import PSSH
@@ -7,9 +7,10 @@ from pywidevine.cdm import Cdm
 from services.hbogo import get_license
 from modules.pssh import get_pssh
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
-from modules.initialization import initialize
+from services.netflix import NetflixClient, download_netflix
+from modules.logging import setup_logging
 
-session, logging = initialize()
+logging = setup_logging()
 
 def load_first_wvd_file(directory="."):
     wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
@@ -30,6 +31,17 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         data = get_license(content_id)
         logging.debug(f"License data: {data}")
         return True, []
+    
+    if service_name == "netflix":
+        if not content_id:
+            logging.error("Content ID is required for Netflix service.")
+            return False, None
+        asyncio.run(download_netflix(content_id, 'output'))
+        return True, []
+
+    if not pssh and service_name != "netflix":
+        logging.error("No PSSH data provided or extracted.")
+        return False, None
 
     service_module = get_service_module(service_name)
     
@@ -67,7 +79,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name in ["vdocipher", "newsnow"]:
         data["licenseRequest"] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
-    elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll"]:
+    elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll", "hbomax"]:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "unifi":
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
@@ -94,7 +106,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["widevine2License"]["license"]
     elif service_name == "astro":
         license_b64 = response.json()["licenseData"][0]
-    elif service_name in ["skyshowtime","tonton", "bitmovin", "unifi", "rakuten", "paramountplus", "joyn", "beinsports", "viki"]:
+    elif service_name in ["skyshowtime","tonton", "bitmovin", "unifi", "rakuten", "paramountplus", "joyn", "beinsports", "viki", "hbomax"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name == "apple":
         license_b64 = response.json()['streaming-response']['streaming-keys'][0]['license']
@@ -106,9 +118,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name in ["amazon", "crunchyroll"]:
         license_b64 = response.json()["license"]
     elif service_name == "filmo":
-        print(response.text)
         license_b64 = base64.b64encode(response.content)
-        print(license_b64)
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

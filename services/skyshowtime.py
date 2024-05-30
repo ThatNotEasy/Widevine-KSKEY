@@ -1,8 +1,8 @@
 import hmac, hashlib, sys, time, base64, requests, json
-from modules.initialization import initialize
+from modules.logging import setup_logging
 from urllib.parse import urlparse
 
-session, logging = initialize()
+logging = setup_logging()
 
 def get_headers():
     headers = {

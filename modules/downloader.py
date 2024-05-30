@@ -3,12 +3,12 @@ import shutil
 import subprocess
 import json
 from pymediainfo import MediaInfo
-from modules.initialization import initialize
+from modules.logging import setup_logging
 from colorama import init, Fore, Style
 
 init(autoreset=True)
 
-session, logger = initialize()
+logging = setup_logging()
 
 
 def validate_keys(keys):
@@ -28,7 +28,7 @@ def validate_keys(keys):
             key_id, key_value = key.split(':')
             valid_keys.append(f"{key_id.strip()}:{key_value.strip()}")
         except ValueError:
-            logger.error("Key format error with key: %s", key)
+            logging.error("Key format error with key: %s", key)
             continue
     return valid_keys
 
@@ -48,7 +48,7 @@ def get_mp4_info(file_path):
         info = media_info.to_data()
         return info
     except Exception as e:
-        logger.error(f"An error occurred while retrieving MP4 info: {e}")
+        logging.error(f"An error occurred while retrieving MP4 info: {e}")
         return None
 
 
@@ -68,9 +68,9 @@ def save_mp4_info(info, save_name):
     try:
         with open(log_file_path, 'w', encoding='utf-8') as log_file:
             json.dump(info, log_file, indent=4)
-        logger.info(f"MP4 info saved to {log_file_path}")
+        logging.info(f"MP4 info saved to {log_file_path}")
     except Exception as e:
-        logger.error(f"An error occurred while saving MP4 info: {e}")
+        logging.error(f"An error occurred while saving MP4 info: {e}")
 
     
 
@@ -110,8 +110,8 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
         command += f' --key {key}'
     
     command += f' -mt -M {output_format} -sv {save_video_quality} -sa {save_audio_quality} -ss all'
-    logger.info(f"{Fore.GREEN}Running command: {Fore.RED}{command}{Fore.RESET}")
-    logger.info(f"{Fore.MAGENTA}Please be patient ..{Fore.RESET}")
+    logging.info(f"{Fore.GREEN}Running command: {Fore.RED}{command}{Fore.RESET}")
+    logging.info(f"{Fore.MAGENTA}Please be patient ..{Fore.RESET}")
 
     # Execute the command
     try:
@@ -125,10 +125,10 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
             print(stderr)
 
         if process.returncode != 0:
-            logger.error(f"Command failed with exit code {process.returncode}")
+            logging.error(f"Command failed with exit code {process.returncode}")
             raise subprocess.CalledProcessError(process.returncode, command)
 
-        logger.info(f"{Fore.GREEN}Download completed successfully.")
+        logging.info(f"{Fore.GREEN}Download completed successfully.")
         
         # Get MP4 info
         mp4_file_path = os.path.join(temp_dir, f"{save_name}.mp4")
@@ -144,11 +144,11 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
         
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"{Fore.RED}Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
+        logging.error(f"{Fore.RED}Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
         return False
     except FileNotFoundError:
-        logger.error(f"{Fore.RED}m3u8dl.exe not found. Make sure it is installed and in the system PATH.")
+        logging.error(f"{Fore.RED}m3u8dl.exe not found. Make sure it is installed and in the system PATH.")
         return False
     except Exception as e:
-        logger.error(f"{Fore.RED}An error occurred: {e}")
+        logging.error(f"{Fore.RED}An error occurred: {e}")
         return False

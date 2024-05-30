@@ -1,12 +1,19 @@
-import shutil, sys
+import shutil, sys, os
 from pathlib import Path
 from typing import Optional
 import pyfiglet
 from colorama import Fore, Style
 import importlib
-from modules.initialization import initialize
+from modules.logging import setup_logging
 
-session, logging = initialize()
+logging = setup_logging()
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def colored_input(prompt, color):
+    print(color + prompt + Style.RESET_ALL, end='')
+    return input()
 
 def get_binary_path(*names: str) -> Optional[Path]:
     """Get the path of the first found binary name."""

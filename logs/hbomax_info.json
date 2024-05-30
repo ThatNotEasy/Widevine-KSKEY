@@ -1,0 +1,879 @@
+{
+    "tracks": [
+        {
+            "track_type": "General",
+            "count": "349",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "General",
+            "other_kind_of_stream": [
+                "General"
+            ],
+            "stream_identifier": "0",
+            "count_of_video_streams": "1",
+            "count_of_audio_streams": "1",
+            "count_of_text_streams": "7",
+            "video_format_list": "AVC",
+            "video_format_withhint_list": "AVC",
+            "codecs_video": "AVC",
+            "audio_format_list": "AAC LC SBR",
+            "audio_format_withhint_list": "AAC LC SBR",
+            "audio_codecs": "AAC LC SBR",
+            "audio_language_list": "Portuguese",
+            "audio_channels_total": "2",
+            "text_format_list": "Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text",
+            "text_format_withhint_list": "Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text",
+            "text_codecs": "Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text / Timed Text",
+            "text_language_list": "English / Spanish / English / Spanish / Portuguese / Spanish / Portuguese",
+            "complete_name": "content\\hbomax.mp4",
+            "folder_name": "content",
+            "file_name_extension": "hbomax.mp4",
+            "file_name": "hbomax",
+            "file_extension": "mp4",
+            "format": "MPEG-4",
+            "other_format": [
+                "MPEG-4"
+            ],
+            "format_extensions_usually_used": "braw mov mp4 m4v m4a m4b m4p m4r 3ga 3gpa 3gpp 3gp 3gpp2 3g2 k3g jpm jpx mqv ismv isma ismt f4a f4b f4v",
+            "commercial_name": "MPEG-4",
+            "format_profile": "Base Media",
+            "internet_media_type": "video/mp4",
+            "codec_id": "isom",
+            "other_codec_id": [
+                "isom (isom/iso2/avc1/mp41)"
+            ],
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "codecid_compatible": "isom/iso2/avc1/mp41",
+            "file_size": 120153041,
+            "other_file_size": [
+                "115 MiB",
+                "115 MiB",
+                "115 MiB",
+                "115 MiB",
+                "114.6 MiB"
+            ],
+            "duration": 17765257,
+            "other_duration": [
+                "4 h 56 min",
+                "4 h 56 min 5 s 257 ms",
+                "4 h 56 min",
+                "04:56:05.257",
+                "00:01:25;00",
+                "04:56:05.257 (00:01:25;00)"
+            ],
+            "overall_bit_rate_mode": "VBR",
+            "other_overall_bit_rate_mode": [
+                "Variable"
+            ],
+            "overall_bit_rate": 54107,
+            "other_overall_bit_rate": [
+                "54.1 kb/s"
+            ],
+            "frame_rate": "29.970",
+            "other_frame_rate": [
+                "29.970 FPS"
+            ],
+            "frame_count": "2548",
+            "stream_size": 1330487,
+            "other_stream_size": [
+                "1.27 MiB (1%)",
+                "1 MiB",
+                "1.3 MiB",
+                "1.27 MiB",
+                "1.269 MiB",
+                "1.27 MiB (1%)"
+            ],
+            "proportion_of_this_stream": "0.01107",
+            "headersize": "40",
+            "datasize": "118822562",
+            "footersize": "1330439",
+            "isstreamable": "No",
+            "recorded_date": "2024-05-31 06:09:34.7488809+08:00",
+            "file_creation_date": "2024-05-30 22:09:34.857 UTC",
+            "file_creation_date__local": "2024-05-31 06:09:34.857",
+            "file_last_modification_date": "2024-05-30 22:09:38.907 UTC",
+            "file_last_modification_date__local": "2024-05-31 06:09:38.907",
+            "writing_application": "Lavf60.16.100",
+            "other_writing_application": [
+                "Lavf60.16.100"
+            ]
+        },
+        {
+            "track_type": "Video",
+            "count": "382",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "Video",
+            "other_kind_of_stream": [
+                "Video"
+            ],
+            "stream_identifier": "0",
+            "streamorder": "0",
+            "track_id": 1,
+            "other_track_id": [
+                "1"
+            ],
+            "format": "AVC",
+            "other_format": [
+                "AVC"
+            ],
+            "format_info": "Advanced Video Codec",
+            "format_url": "http://developers.videolan.org/x264.html",
+            "commercial_name": "AVC",
+            "format_profile": "High@L4.1",
+            "format_settings": "CABAC / 4 Ref Frames",
+            "format_settings__cabac": "Yes",
+            "other_format_settings__cabac": [
+                "Yes"
+            ],
+            "format_settings__reference_frames": 4,
+            "other_format_settings__reference_frames": [
+                "4 frames"
+            ],
+            "internet_media_type": "video/H264",
+            "codec_id": "avc1",
+            "codec_id_info": "Advanced Video Coding",
+            "duration": 85019,
+            "other_duration": [
+                "1 min 25 s",
+                "1 min 25 s 19 ms",
+                "1 min 25 s",
+                "00:01:25.019",
+                "00:01:25;00",
+                "00:01:25.019 (00:01:25;00)"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 3819639,
+            "other_bit_rate": [
+                "3 820 kb/s"
+            ],
+            "maximum_bit_rate": 10000000,
+            "other_maximum_bit_rate": [
+                "10 000 kb/s"
+            ],
+            "width": 1920,
+            "other_width": [
+                "1 920 pixels"
+            ],
+            "height": 1080,
+            "other_height": [
+                "1 080 pixels"
+            ],
+            "stored_height": "1088",
+            "sampled_width": "1920",
+            "sampled_height": "1080",
+            "pixel_aspect_ratio": "1.000",
+            "display_aspect_ratio": "1.778",
+            "other_display_aspect_ratio": [
+                "16:9"
+            ],
+            "rotation": "0.000",
+            "frame_rate_mode": "CFR",
+            "other_frame_rate_mode": [
+                "Constant"
+            ],
+            "frame_rate": "29.970",
+            "other_frame_rate": [
+                "29.970 (30000/1001) FPS"
+            ],
+            "framerate_num": "30000",
+            "framerate_den": "1001",
+            "frame_count": "2548",
+            "color_space": "YUV",
+            "chroma_subsampling": "4:2:0",
+            "other_chroma_subsampling": [
+                "4:2:0"
+            ],
+            "bit_depth": 8,
+            "other_bit_depth": [
+                "8 bits"
+            ],
+            "scan_type": "Progressive",
+            "other_scan_type": [
+                "Progressive"
+            ],
+            "bits__pixel_frame": "0.061",
+            "stream_size": 40592428,
+            "other_stream_size": [
+                "38.7 MiB (34%)",
+                "39 MiB",
+                "39 MiB",
+                "38.7 MiB",
+                "38.71 MiB",
+                "38.7 MiB (34%)"
+            ],
+            "proportion_of_this_stream": "0.33784",
+            "writing_library": "x264 - core 164",
+            "other_writing_library": [
+                "x264 core 164"
+            ],
+            "encoded_library_name": "x264",
+            "encoded_library_version": "core 164",
+            "encoding_settings": "cabac=1 / ref=4 / deblock=1:0:0 / analyse=0x3:0x133 / me=umh / subme=10 / psy=1 / psy_rd=1.00:0.00 / mixed_ref=1 / me_range=24 / chroma_me=1 / trellis=2 / 8x8dct=1 / cqm=0 / deadzone=21,11 / fast_pskip=1 / chroma_qp_offset=-2 / threads=24 / lookahead_threads=2 / sliced_threads=0 / nr=0 / decimate=1 / interlaced=0 / bluray_compat=0 / stitchable=1 / constrained_intra=0 / bframes=3 / b_pyramid=2 / b_adapt=2 / b_bias=0 / direct=3 / weightb=1 / open_gop=0 / weightp=2 / keyint=120 / keyint_min=61 / scenecut=0 / intra_refresh=0 / rc_lookahead=120 / rc=crf / mbtree=1 / crf=20.0 / qcomp=0.60 / qpmin=0 / qpmax=69 / qpstep=4 / vbv_maxrate=10000 / vbv_bufsize=40000 / crf_max=0.0 / nal_hrd=vbr / filler=0 / ip_ratio=1.40 / aq=1:1.00",
+            "buffer_size": "40000000",
+            "colour_description_present": "Yes",
+            "colour_description_present_source": "Container / Stream",
+            "color_range": "Limited",
+            "colour_range_source": "Container / Stream",
+            "color_primaries": "BT.709",
+            "colour_primaries_source": "Container / Stream",
+            "transfer_characteristics": "BT.709",
+            "transfer_characteristics_source": "Container / Stream",
+            "matrix_coefficients": "BT.709",
+            "matrix_coefficients_source": "Container / Stream",
+            "codec_configuration_box": "avcC"
+        },
+        {
+            "track_type": "Audio",
+            "count": "285",
+            "count_of_stream_of_this_kind": "1",
+            "kind_of_stream": "Audio",
+            "other_kind_of_stream": [
+                "Audio"
+            ],
+            "stream_identifier": "0",
+            "streamorder": "1",
+            "track_id": 2,
+            "other_track_id": [
+                "2"
+            ],
+            "format": "AAC",
+            "other_format": [
+                "AAC LC SBR"
+            ],
+            "format_info": "Advanced Audio Codec Low Complexity with Spectral Band Replication",
+            "commercial_name": "HE-AAC",
+            "other_commercial_name": [
+                "HE-AAC"
+            ],
+            "format_settings": "Explicit",
+            "format_settings__sbr": "Yes (Explicit)",
+            "other_format_settings__sbr": [
+                "Yes (Explicit)"
+            ],
+            "format_additionalfeatures": "LC SBR",
+            "codec_id": "mp4a-40-2",
+            "duration": 9947136,
+            "other_duration": [
+                "2 h 45 min",
+                "2 h 45 min 47 s 136 ms",
+                "2 h 45 min",
+                "02:45:47.136",
+                "02:45:47.136"
+            ],
+            "bit_rate_mode": "CBR",
+            "other_bit_rate_mode": [
+                "Constant"
+            ],
+            "bit_rate": 62687,
+            "other_bit_rate": [
+                "62.7 kb/s"
+            ],
+            "channel_s": 2,
+            "other_channel_s": [
+                "2 channels"
+            ],
+            "channel_positions": "Front: L R",
+            "other_channel_positions": [
+                "2/0/0"
+            ],
+            "channel_layout": "L R",
+            "samples_per_frame": "2048",
+            "sampling_rate": 48000,
+            "other_sampling_rate": [
+                "48.0 kHz"
+            ],
+            "samples_count": "477462528",
+            "frame_rate": "23.438",
+            "other_frame_rate": [
+                "23.438 FPS (2048 SPF)"
+            ],
+            "frame_count": "233136",
+            "compression_mode": "Lossy",
+            "other_compression_mode": [
+                "Lossy"
+            ],
+            "stream_size": 77945136,
+            "other_stream_size": [
+                "74.3 MiB (65%)",
+                "74 MiB",
+                "74 MiB",
+                "74.3 MiB",
+                "74.33 MiB",
+                "74.3 MiB (65%)"
+            ],
+            "proportion_of_this_stream": "0.64872",
+            "title": "Portuguese (Brazil)",
+            "language": "pt",
+            "other_language": [
+                "Portuguese",
+                "Portuguese",
+                "pt",
+                "por",
+                "pt"
+            ],
+            "default": "Yes",
+            "other_default": [
+                "Yes"
+            ],
+            "alternate_group": 1,
+            "other_alternate_group": [
+                "1"
+            ]
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 0,
+            "other_stream_identifier": [
+                "1"
+            ],
+            "streamorder": "2",
+            "track_id": 3,
+            "other_track_id": [
+                "3"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9451060,
+            "other_duration": [
+                "2 h 37 min",
+                "2 h 37 min 31 s 60 ms",
+                "2 h 37 min",
+                "02:37:31.060",
+                "02:37:31.060"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 49,
+            "other_bit_rate": [
+                "49 b/s"
+            ],
+            "frame_rate": "0.366",
+            "other_frame_rate": [
+                "0.366 FPS"
+            ],
+            "frame_count": "3459",
+            "stream_size": 58468,
+            "other_stream_size": [
+                "57.1 KiB (0%)",
+                "57 KiB",
+                "57 KiB",
+                "57.1 KiB",
+                "57.10 KiB",
+                "57.1 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00049",
+            "title": "English (United States)",
+            "language": "en",
+            "other_language": [
+                "English",
+                "English",
+                "en",
+                "eng",
+                "en"
+            ],
+            "default": "Yes",
+            "other_default": [
+                "Yes"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "1729"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 1,
+            "other_stream_identifier": [
+                "2"
+            ],
+            "streamorder": "3",
+            "track_id": 4,
+            "other_track_id": [
+                "4"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 17765257,
+            "other_duration": [
+                "4 h 56 min",
+                "4 h 56 min 5 s 257 ms",
+                "4 h 56 min",
+                "04:56:05.257",
+                "04:56:05.257"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 27,
+            "other_bit_rate": [
+                "27 b/s"
+            ],
+            "frame_rate": "0.212",
+            "other_frame_rate": [
+                "0.212 FPS"
+            ],
+            "frame_count": "3774",
+            "stream_size": 60556,
+            "other_stream_size": [
+                "59.1 KiB (0%)",
+                "59 KiB",
+                "59 KiB",
+                "59.1 KiB",
+                "59.14 KiB",
+                "59.1 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00050",
+            "title": "Spanish",
+            "language": "es",
+            "other_language": [
+                "Spanish",
+                "Spanish",
+                "es",
+                "spa",
+                "es"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "1900"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 2,
+            "other_stream_identifier": [
+                "3"
+            ],
+            "streamorder": "4",
+            "track_id": 5,
+            "other_track_id": [
+                "5"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9451060,
+            "other_duration": [
+                "2 h 37 min",
+                "2 h 37 min 31 s 60 ms",
+                "2 h 37 min",
+                "02:37:31.060",
+                "02:37:31.060"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 49,
+            "other_bit_rate": [
+                "49 b/s"
+            ],
+            "frame_rate": "0.366",
+            "other_frame_rate": [
+                "0.366 FPS"
+            ],
+            "frame_count": "3459",
+            "stream_size": 58468,
+            "other_stream_size": [
+                "57.1 KiB (0%)",
+                "57 KiB",
+                "57 KiB",
+                "57.1 KiB",
+                "57.10 KiB",
+                "57.1 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00049",
+            "title": "English (United States)",
+            "language": "en",
+            "other_language": [
+                "English",
+                "English",
+                "en",
+                "eng",
+                "en"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "1729"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 3,
+            "other_stream_identifier": [
+                "4"
+            ],
+            "streamorder": "5",
+            "track_id": 6,
+            "other_track_id": [
+                "6"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9940639,
+            "other_duration": [
+                "2 h 45 min",
+                "2 h 45 min 40 s 639 ms",
+                "2 h 45 min",
+                "02:45:40.639",
+                "02:45:40.639"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 37,
+            "other_bit_rate": [
+                "37 b/s"
+            ],
+            "frame_rate": "0.267",
+            "other_frame_rate": [
+                "0.267 FPS"
+            ],
+            "frame_count": "2655",
+            "stream_size": 46467,
+            "other_stream_size": [
+                "45.4 KiB (0%)",
+                "45 KiB",
+                "45 KiB",
+                "45.4 KiB",
+                "45.38 KiB",
+                "45.4 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00039",
+            "title": "Spanish",
+            "language": "es",
+            "other_language": [
+                "Spanish",
+                "Spanish",
+                "es",
+                "spa",
+                "es"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "1327"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 4,
+            "other_stream_identifier": [
+                "5"
+            ],
+            "streamorder": "6",
+            "track_id": 7,
+            "other_track_id": [
+                "7"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9940681,
+            "other_duration": [
+                "2 h 45 min",
+                "2 h 45 min 40 s 681 ms",
+                "2 h 45 min",
+                "02:45:40.681",
+                "02:45:40.681"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 38,
+            "other_bit_rate": [
+                "38 b/s"
+            ],
+            "frame_rate": "0.267",
+            "other_frame_rate": [
+                "0.267 FPS"
+            ],
+            "frame_count": "2653",
+            "stream_size": 47311,
+            "other_stream_size": [
+                "46.2 KiB (0%)",
+                "46 KiB",
+                "46 KiB",
+                "46.2 KiB",
+                "46.20 KiB",
+                "46.2 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00039",
+            "title": "Portuguese (Brazil)",
+            "language": "pt",
+            "other_language": [
+                "Portuguese",
+                "Portuguese",
+                "pt",
+                "por",
+                "pt"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "1326"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 5,
+            "other_stream_identifier": [
+                "6"
+            ],
+            "streamorder": "7",
+            "track_id": 8,
+            "other_track_id": [
+                "8"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9548998,
+            "other_duration": [
+                "2 h 39 min",
+                "2 h 39 min 8 s 998 ms",
+                "2 h 39 min",
+                "02:39:08.998",
+                "02:39:08.998"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 6,
+            "other_bit_rate": [
+                "6 b/s"
+            ],
+            "frame_rate": "0.045",
+            "other_frame_rate": [
+                "0.045 FPS"
+            ],
+            "frame_count": "429",
+            "stream_size": 6810,
+            "other_stream_size": [
+                "6.65 KiB (0%)",
+                "7 KiB",
+                "6.7 KiB",
+                "6.65 KiB",
+                "6.650 KiB",
+                "6.65 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00006",
+            "title": "Spanish",
+            "language": "es",
+            "other_language": [
+                "Spanish",
+                "Spanish",
+                "es",
+                "spa",
+                "es"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "214"
+        },
+        {
+            "track_type": "Text",
+            "count": "304",
+            "count_of_stream_of_this_kind": "7",
+            "kind_of_stream": "Text",
+            "other_kind_of_stream": [
+                "Text"
+            ],
+            "stream_identifier": 6,
+            "other_stream_identifier": [
+                "7"
+            ],
+            "streamorder": "8",
+            "track_id": 9,
+            "other_track_id": [
+                "9"
+            ],
+            "format": "Timed Text",
+            "other_format": [
+                "Timed Text"
+            ],
+            "commercial_name": "Timed Text",
+            "muxing_mode": "sbtl",
+            "codec_id": "tx3g",
+            "codec_id_url": "http://www.apple.com/quicktime/download/standalone.html",
+            "duration": 9548998,
+            "other_duration": [
+                "2 h 39 min",
+                "2 h 39 min 8 s 998 ms",
+                "2 h 39 min",
+                "02:39:08.998",
+                "02:39:08.998"
+            ],
+            "bit_rate_mode": "VBR",
+            "other_bit_rate_mode": [
+                "Variable"
+            ],
+            "bit_rate": 6,
+            "other_bit_rate": [
+                "6 b/s"
+            ],
+            "frame_rate": "0.044",
+            "other_frame_rate": [
+                "0.044 FPS"
+            ],
+            "frame_count": "423",
+            "stream_size": 6910,
+            "other_stream_size": [
+                "6.75 KiB (0%)",
+                "7 KiB",
+                "6.7 KiB",
+                "6.75 KiB",
+                "6.748 KiB",
+                "6.75 KiB (0%)"
+            ],
+            "proportion_of_this_stream": "0.00006",
+            "title": "Portuguese (Brazil)",
+            "language": "pt",
+            "other_language": [
+                "Portuguese",
+                "Portuguese",
+                "pt",
+                "por",
+                "pt"
+            ],
+            "default": "No",
+            "other_default": [
+                "No"
+            ],
+            "forced": "No",
+            "other_forced": [
+                "No"
+            ],
+            "alternate_group": 3,
+            "other_alternate_group": [
+                "3"
+            ],
+            "count_of_events": "211"
+        }
+    ]
+}

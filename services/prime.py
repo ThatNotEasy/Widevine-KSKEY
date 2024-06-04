@@ -11,5 +11,8 @@ def get_params():
     return params
 
 def get_data():
-    data = {'widevine2Challenge': None,'includeHdcpTestKeyInLicense': 'true',}
+    data = {
+        'widevine2Challenge': None,
+        'includeHdcpTestKeyInLicense': 'true',
+    }
     return data

@@ -8,6 +8,7 @@ from services.hbogo import get_license
 from modules.pssh import get_pssh
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from services.netflix import NetflixClient, download_netflix
+from colorama import Fore
 from modules.logging import setup_logging
 
 logging = setup_logging()
@@ -21,8 +22,11 @@ def load_first_wvd_file(directory="."):
 
 def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     logging.info(f"Getting license keys for service: {service_name}")
+    print(Fore.MAGENTA + "=============================================================================================================")
     logging.info(f"PSSH: {pssh}")
+    print(Fore.MAGENTA + "=============================================================================================================")
     logging.info(f"License URL: {lic_url}")
+    print(Fore.MAGENTA + "=============================================================================================================")
 
     if service_name == "hbogo":
         if not content_id:
@@ -50,16 +54,20 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     params = getattr(service_module, 'get_params', lambda: {})()
     cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
-    # logging.debug(f"Headers: {headers}")
-    # logging.debug(f"Data: {data}")
-    # logging.debug(f"Params: {params}")
-    # logging.debug(f"Cookies: {cookies}")
+    # logging.debug(f"{Fore.GREEN}Headers: {Fore.YELLOW}{headers}{Fore.RESET}")
+    # print(Fore.MAGENTA + "=============================================================================================================")
+    # logging.debug(f"{Fore.GREEN}Data: {Fore.YELLOW}{data}{Fore.RESET}")
+    # print(Fore.MAGENTA + "=============================================================================================================")
+    # logging.debug(f"{Fore.GREEN}Params: {Fore.YELLOW}{params}{Fore.RESET}")
+    # print(Fore.MAGENTA + "=============================================================================================================")
+    # logging.debug(f"{Fore.GREEN}Cookies: {Fore.YELLOW}{cookies}{Fore.RESET}")
 
     device = load_first_wvd_file()
     cdm = Cdm.from_device(device)
     session_id = cdm.open()
     challenge = cdm.get_license_challenge(session_id, PSSH(pssh))
     challenge_b64 = b64encode(challenge).decode('utf-8')
+    print(challenge_b64)
     
     if not pssh:
         logging.error("No PSSH data provided or extracted.")
@@ -67,8 +75,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
 
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxy)
-    elif service_name in ["astro", "apple", "amazon"]:
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
+        print(response.text)
+    elif service_name in ["astro", "apple", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name =="tonton":
@@ -115,7 +124,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = b64encode(response_data_bytes).decode()
     elif service_name in ["mubi", "dazn", "vdocipher", "newsnow", "beinsports", "viaplay", "peacock"]:
         license_b64 = b64encode(response.content).decode()
-    elif service_name in ["amazon", "crunchyroll"]:
+    elif service_name in ["music-amz", "crunchyroll"]:
         license_b64 = response.json()["license"]
     elif service_name == "filmo":
         license_b64 = base64.b64encode(response.content)

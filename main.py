@@ -3,7 +3,7 @@ from colorama import init, Fore, Style
 from modules.downloader import drm_downloader, validate_keys
 from modules.logging import setup_logging
 from modules.arg_parser import parse_arguments
-from modules.pssh import get_pssh
+from modules.pssh import get_pssh, amz_pssh
 from services.netflix import NetflixClient, download_netflix
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input
 from modules.license_retrieval import get_license_keys
@@ -12,15 +12,15 @@ logging = setup_logging()
 
 def main():
     init(autoreset=True)  # Ensure Colorama is initialized to auto-reset style after each print.
-    clear_screen()  # This function needs to be defined to clear the console.
+    clear_screen()  # Clear the console.
 
     try:
-        args = parse_arguments()  # Ensure this function is implemented to parse CLI arguments.
+        args = parse_arguments()  # Parse CLI arguments.
     except Exception as e:
         print(f"{Fore.RED}Error parsing arguments: {e}{Style.RESET_ALL}")
         sys.exit(1)
 
-    print_title('Widevine-KSKEY', args.proxy)  # Define or import print_title function.
+    print_title('Widevine-KSKEY', args.proxy)
 
     if args.service == "netflix":
         if not args.content_id:
@@ -28,8 +28,14 @@ def main():
             sys.exit(1)
         asyncio.run(download_netflix(args.content_id, 'output'))
         return
+    
+    if args.service == "prime" and args.mpd_url:
+        pssh = amz_pssh(args.mpd_url)
+    elif args.mpd_url:
+        pssh = get_pssh(args.mpd_url)
+    else:
+        pssh = args.pssh
 
-    pssh = args.pssh or (get_pssh(args.mpd_url) if args.mpd_url else None)
     if not pssh:
         logging.error("No PSSH data provided or extracted.")
         sys.exit(1)

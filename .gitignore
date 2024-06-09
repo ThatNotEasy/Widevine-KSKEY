@@ -1,8 +1,29 @@
-venv/*
-modules/__pycache__
-services/__pycache__
-.vscode
-__pycache__
+# Ignore virtual environment directories
+venv/
+
+# Ignore compiled Python files
+__pycache__/
+modules/__pycache__/
+services/__pycache__/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore content directory
 content/
+
+# Ignore specific files
 PythonImportHelper-v2-Completion.json
 config.ini
+device_client_id_blob
+device_private_key
+google_sdk_gphone64_x86_64_18.0.0@340720000_f9ee1d09_28615_l1.wvd
+
+# Ignore log files
+logs/*.txt
+logs/*.json
+logs/*.log
+
+# Ignore cookies
+cookies/*.txt
+cookies/*.json

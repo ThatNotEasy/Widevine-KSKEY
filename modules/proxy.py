@@ -1,4 +1,13 @@
-import httpx, uuid, json, random
+import requests
+import uuid
+import json
+import random
+from modules.logging import setup_logging
+
+logging = setup_logging()
+
+PROXY_SCRAPE_URL = "https://api.proxyscrape.com/?request=displayproxies&proxytype=all"
+ROTATE_PROXY = "https://dev.kepala-pantas.xyz/dev/osint/rotate-proxy"
 
 class Settings:
     def __init__(self, userCountry: str = None, randomProxy: bool = False) -> None:
@@ -11,50 +20,78 @@ class Settings:
         self.user_agent = "Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
         self.product = "cws"
         self.port_type_choice: str
-        self.zoneAvailable = ["AR", "AT", "AU", "BE", "BG", "BR", "CA", "CH", "CL", "CO", "CZ", "DE", "DK", "ES", "FI",
-                              "FR", "GR", "HK", "HR", "HU", "ID", "IE", "IL", "IN", "IS", "IT", "JP", "KR", "MX", "NL",
-                              "NO", "NZ", "PL", "RO", "RU", "SE", "SG", "SK", "TR", "UK", "US", "GB"]
+        self.zoneAvailable = [  # Comprehensive list of country codes
+            "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AR", "AT", "AU", "AW", "AZ", "BA", "BB", "BD", "BE", "BF",
+            "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", "BS", "BT", "BW", "BY", "BZ", "CA", "CD", "CF", "CG", "CH",
+            "CI", "CL", "CM", "CN", "CO", "CR", "CU", "CV", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE",
+            "EG", "ER", "ES", "ET", "FI", "FJ", "FM", "FR", "GA", "GB", "GD", "GE", "GH", "GM", "GN", "GQ", "GR", "GT",
+            "GW", "GY", "HK", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IN", "IQ", "IR", "IS", "IT", "JM", "JO", "JP",
+            "KE", "KG", "KH", "KI", "KM", "KN", "KP", "KR", "KW", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT",
+            "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MH", "MK", "ML", "MM", "MN", "MR", "MT", "MU", "MV", "MW",
+            "MX", "MY", "MZ", "NA", "NE", "NG", "NI", "NL", "NO", "NP", "NR", "NU", "NZ", "OM", "PA", "PE", "PG", "PH",
+            "PK", "PL", "PT", "PW", "PY", "QA", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SI", "SK",
+            "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TD", "TG", "TH", "TJ", "TL", "TM", "TN", "TO", "TR",
+            "TT", "TV", "TZ", "UA", "UG", "US", "UY", "UZ", "VA", "VC", "VE", "VN", "VU", "WS", "YE", "ZA", "ZM", "ZW"
+        ]
 
     def get_ext_ver(self) -> str:
-        about = httpx.get("https://hola.org/access/my/settings#/about").text
-        if 'window.pub_config.init({"ver":"' in about:
-            version = about.split('window.pub_config.init({"ver":"')[1].split('"')[0]
-            return version
-
-        # last know working version
-        return "1.199.485"
-
+        try:
+            about = requests.get("https://hola.org/access/my/settings#/about").text
+            if 'window.pub_config.init({"ver":"' in about:
+                version = about.split('window.pub_config.init({"ver":"')[1].split('"')[0]
+                logging.debug(f"Retrieved extension version: {version}")
+                return version
+        except requests.RequestException as e:
+            logging.error(f"Request error while getting extension version: {e}")
+        return "1.199.485"  # last known working version
 
 class Engine:
-    def __init__(self, Settings) -> None:
-        self.settings = Settings
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
 
     def get_proxy(self, tunnels, tls=False) -> str:
         login = f"user-uuid-{self.settings.user_uuid}"
         proxies = dict(tunnels)
         protocol = "https" if tls else "http"
         for k, v in proxies["ip_list"].items():
-            return "%s://%s:%s@%s:%d" % (
+            proxy_str = "%s://%s:%s@%s:%d" % (
                 protocol,
                 login,
                 proxies["agent_key"],
                 k if tls else v,
                 proxies["port"][self.settings.port_type_choice],
             )
+            logging.debug(f"Generated proxy string: {proxy_str}")
+            return proxy_str
 
-    def generate_session_key(self, timeout: float = 10.0) -> json:
+    def generate_session_key(self, timeout: float = 10.0) -> str:
         post_data = {"login": "1", "ver": self.settings.ext_ver}
-        return httpx.post(
-            f"{self.settings.ccgi_url}background_init?uuid={self.settings.user_uuid}",
-            json=post_data,
-            headers={"User-Agent": self.settings.user_agent},
-            timeout=timeout,
-        ).json()["key"]
+        try:
+            response = requests.post(
+                f"{self.settings.ccgi_url}background_init?uuid={self.settings.user_uuid}",
+                json=post_data,
+                headers={"User-Agent": self.settings.user_agent},
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if "key" in data:
+                logging.debug(f"Session key generated: {data['key']}")
+                return data["key"]
+            else:
+                logging.error("Key not found in response: %s", data)
+                raise KeyError("key")
+        except requests.RequestException as e:
+            logging.error(f"Request error while generating session key: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decode error: {e}")
+            raise
+        except KeyError as e:
+            logging.error(f"Key error: {e}")
+            raise
 
-    def zgettunnels(
-        self, session_key: str, country: str, timeout: float = 10.0
-    ) -> json:
-
+    def zgettunnels(self, session_key: str, country: str, timeout: float = 10.0) -> json:
         qs = {
             "country": country.lower(),
             "limit": 1,
@@ -64,26 +101,98 @@ class Engine:
             "uuid": self.settings.user_uuid,
             "session_key": session_key,
         }
-
-        return httpx.post(
-            f"{self.settings.ccgi_url}zgettunnels", params=qs, timeout=timeout
-        ).json()
-
+        try:
+            response = requests.post(
+                f"{self.settings.ccgi_url}zgettunnels", params=qs, timeout=timeout
+            )
+            response.raise_for_status()
+            data = response.json()
+            logging.debug(f"Tunnels retrieved: {data}")
+            return data
+        except requests.RequestException as e:
+            logging.error(f"Request error while getting tunnels: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decode error: {e}")
+            raise
 
 class Hola:
-    def __init__(self, Settings) -> None:
+    def __init__(self, settings: Settings) -> None:
         self.myipUri: str = "https://hola.org/myip.json"
-        self.settings = Settings
+        self.settings = settings
 
     def get_country(self) -> str:
+        try:
+            if not self.settings.randomProxy and not self.settings.userCountry:
+                self.settings.userCountry = requests.get(self.myipUri).json()["country"]
+                logging.debug(f"Retrieved user country: {self.settings.userCountry}")
 
-        if not self.settings.randomProxy and not self.settings.userCountry:
-            self.settings.userCountry = httpx.get(self.myipUri).json()["country"]
+            if (
+                not self.settings.userCountry in self.settings.zoneAvailable
+                or self.settings.randomProxy
+            ):
+                self.settings.userCountry = random.choice(self.settings.zoneAvailable)
+                logging.debug(f"Randomly selected country: {self.settings.userCountry}")
 
-        if (
-            not self.settings.userCountry in self.settings.zoneAvailable
-            or self.settings.randomProxy
-        ):
-            self.settings.userCountry = random.choice(self.settings.zoneAvailable)
+            return self.settings.userCountry
+        except requests.RequestException as e:
+            logging.error(f"Request error while getting country: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decode error: {e}")
+            raise
 
-        return self.settings.userCountry
+def proxyscrape() -> list:
+    try:
+        response = requests.get(PROXY_SCRAPE_URL)
+        response.raise_for_status()
+        proxies = response.text.split('\n')
+        proxies = [proxy.strip() for proxy in proxies if proxy.strip()]
+        logging.debug(f"Fetched {len(proxies)} proxies from ProxyScrape")
+        return proxies
+    except requests.RequestException as e:
+        logging.error(f"Request error while fetching proxies: {e}")
+        return []
+
+def init_proxy(data):
+    settings = Settings(
+        data["zone"]
+    )  # True if you want random proxy each request / "DE" for a proxy with region of your choice (German here) / False if you wish to have a proxy localized to your IP address
+    settings.port_type_choice = data[
+        "port"
+    ]  # direct return datacenter ipinfo, peer "residential" (can fail sometime)
+
+    hola = Hola(settings)
+    engine = Engine(settings)
+
+    userCountry = hola.get_country()
+    session_key = engine.generate_session_key()
+    tunnels = engine.zgettunnels(session_key, userCountry)
+    return engine.get_proxy(tunnels)
+
+def rotate_proxy():
+    try:
+        response = requests.get(ROTATE_PROXY)
+        response.raise_for_status()
+        data = response.json()
+        proxies = [
+            f"http://{proxy['ipPort']}" for proxy in data['proxies'] if proxy['protocol'].lower() == 'http'
+        ]
+        return proxies
+    except requests.RequestException as e:
+        logging.error(f"Error fetching proxies: {e}")
+        return []
+
+allowed_countries = [
+    "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AR", "AT", "AU", "AW", "AZ", "BA", "BB", "BD", "BE", "BF",
+    "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", "BS", "BT", "BW", "BY", "BZ", "CA", "CD", "CF", "CG", "CH",
+    "CI", "CL", "CM", "CN", "CO", "CR", "CU", "CV", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE",
+    "EG", "ER", "ES", "ET", "FI", "FJ", "FM", "FR", "GA", "GB", "GD", "GE", "GH", "GM", "GN", "GQ", "GR", "GT",
+    "GW", "GY", "HK", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IN", "IQ", "IR", "IS", "IT", "JM", "JO", "JP",
+    "KE", "KG", "KH", "KI", "KM", "KN", "KP", "KR", "KW", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT",
+    "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MH", "MK", "ML", "MM", "MN", "MR", "MT", "MU", "MV", "MW",
+    "MX", "MY", "MZ", "NA", "NE", "NG", "NI", "NL", "NO", "NP", "NR", "NU", "NZ", "OM", "PA", "PE", "PG", "PH",
+    "PK", "PL", "PT", "PW", "PY", "QA", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SI", "SK",
+    "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TD", "TG", "TH", "TJ", "TL", "TM", "TN", "TO", "TR",
+    "TT", "TV", "TZ", "UA", "UG", "US", "UY", "UZ", "VA", "VC", "VE", "VN", "VU", "WS", "YE", "ZA", "ZM", "ZW"
+]

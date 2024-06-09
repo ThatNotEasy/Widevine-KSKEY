@@ -1,5 +1,5 @@
 import re
-from third_party.utils import lang_codes
+from modules.utils import lang_codes
 
 class Parse:
     def __init__(self, playlist, client):

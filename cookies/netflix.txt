@@ -1,1 +1,11 @@
-PASTE A Netscape HTTP Cookie FORMAT HERE
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+# Domain	Subdomain	Path	Secure	Expire	Name	Value
+.netflix.com	TRUE	/	FALSE	1747493194	nfvdid	BQFmAAEBEMZQE59D43ZzwcNB0gRHg9lg1cNZCWbFG82cjy34iQYp1PvFsbHbuqPy-rSG7QR15_CNSV1p9lD0_jg0JEHSoCvuJKB79ZHq7vsGxUd6HhAf7HflXjJKDo_BkbmaMd7YmY0UeUsXF4t91suZlm0QLtWr
+.netflix.com	TRUE	/	FALSE	1717621850	flwssn	0383e33d-d01b-4720-9d65-936bc7e6f6a4
+.netflix.com	TRUE	/	TRUE	1749147010	SecureNetflixId	v%3D2%26mac%3DAQEAEQABABQGulhcs20J_69-jdXvf6zP2GDCM0GeWJc.%26dt%3D1717611016309
+.netflix.com	TRUE	/	TRUE	1749147010	NetflixId	ct%3DBQAOAAEBEO7JCbInHxjXKumkFJSa9DWCYI0GH5P2iX7I3pvxEk1Be7mkplW-EUHThHGDK7_2GU6QbqX_LZqcijnF1_FeD6hEUJQkSolwBvQ0CgoUgJQh7o1mjZ1giF1FukX9H9M7vxboplyV9Juwj7VcI6yCfG8fF57E0sX5PZkAJClxseJEjFKchUXRHrW8Gx-wRozLtcUyKoExt81lVfDUxOUePy97FWcudQmXdGbFKHdS7IVMAS2Msw2dPsIDkXAy3epeI3qK-ucu7gSzNJAeA1hRHeL84dgjNOdQViJkWAethTCyGbcnNnr91sa9iKjlh_bGCW5C-wteFge1loNckNDLA1Zmme4EcNRkDGZ1Wq1bZl_NoDYG4p42FjeRBfuEPqFrU516zBA02ZZPRvFWm2YkzXtAdElX9T0rL6RqSNCMYfTWAcN3wvVu--zy9jxsjk-VGPIZ45BHFCXsrWWTyqbbE1QxrjOtucHwHMS28_IDBTuADthZ2wtlbmcAW-PpvuVIST4DcpJBv6Fjb8BQKUTaVAecxo_po0L3dzB78VvRm0SzfXKCiooTAkp6MWfgih5Fhoq_BWEE2aZ2zZIPLj6_KS46qNIhCxEmfoWceqWcydE66NLZi_s1hhVR066qrIBu7B8IzMQvFAiZMvDvB2zhY1p55C9K0_p_AKmWfuOG1kGzUC5qQtI5EVSPV7MnPanqDSCy9wi9Yy5Kfo4lx8nKcWZP0zuCaqvT0IjJELcPK8C-W20wjTyitkdho72k_lAoKEZ7ffQU_rjm6XcEQ3OMAiuPXAAE917VuEL-wtqJpUxOUpK3QYTeLKpTzlLU_nEUfRee%26bt%3Ddbl%26ch%3DAQEAEAABABSsRx0pmRgNUYXw1Th-fsPdqXh8m6g6ydw.%26v%3D2%26mac%3DAQEAEAABABSpphXUyAZGOr7Or8ZXFe3K8tLMsYEIItg.
+.netflix.com	TRUE	/	FALSE	1717612860	profilesNewSession	0
+.netflix.com	TRUE	/	FALSE	1749147051	OptanonConsent	isGpcEnabled=0&datestamp=Thu+Jun+06+2024+02%3A10%3A51+GMT%2B0800+(Malaysia+Time)&version=202405.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=7dab199b-b3c3-4dc1-b799-aa5a12d52bd0&interactionCount=1&isAnonUser=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false

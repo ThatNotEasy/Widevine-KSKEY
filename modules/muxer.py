@@ -3,7 +3,7 @@ import shutil
 import os
 import re
 from colorama import Fore
-from third_party.utils import lang_codes
+from modules.utils import lang_codes
 
 video_reg = re.compile(
     r"video\[\d+\]\[(?P<quality>\d+)p\]" + \

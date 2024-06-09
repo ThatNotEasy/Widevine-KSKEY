@@ -6,6 +6,7 @@ from pywidevine.device import Device
 from pywidevine.cdm import Cdm
 from services.hbogo import get_license
 from modules.pssh import get_pssh
+from modules.proxy import init_proxy, allowed_countries
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from services.netflix import NetflixClient, download_netflix
 from colorama import Fore
@@ -21,11 +22,13 @@ def load_first_wvd_file(directory="."):
         logging.error("No .wvd files found in the directory.")
 
 def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
-    logging.info(f"Getting license keys for service: {service_name}")
+    logging.info(f"{Fore.YELLOW}Getting license keys for service: {Fore.GREEN}{service_name}")
     print(Fore.MAGENTA + "=============================================================================================================")
-    logging.info(f"PSSH: {pssh}")
+    logging.info(f"{Fore.YELLOW}PSSH: {Fore.RED}{pssh}")
     print(Fore.MAGENTA + "=============================================================================================================")
-    logging.info(f"License URL: {lic_url}")
+    logging.info(f"{Fore.YELLOW}License URL: {Fore.RED}{lic_url}")
+    print(Fore.MAGENTA + "=============================================================================================================")
+    logging.info(f"{Fore.YELLOW}Proxies: {Fore.RED}{proxy}")
     print(Fore.MAGENTA + "=============================================================================================================")
 
     if service_name == "hbogo":
@@ -67,16 +70,17 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     session_id = cdm.open()
     challenge = cdm.get_license_challenge(session_id, PSSH(pssh))
     challenge_b64 = b64encode(challenge).decode('utf-8')
-    print(challenge_b64)
+    # print(challenge_b64)
     
     if not pssh:
         logging.error("No PSSH data provided or extracted.")
         return False, None
+    
 
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
-        print(response.text)
+        # print(response.text)
     elif service_name in ["astro", "apple", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
@@ -103,6 +107,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         manifest_url = vod_request['asset']['endpoints'][0]['url']
         pssh = get_pssh(manifest_url)
         response = requests.post(url=license_url, headers=headers, data=challenge, proxies=proxy)
+    elif service_name == "udemy":
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     

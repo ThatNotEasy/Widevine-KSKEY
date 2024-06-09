@@ -8,11 +8,11 @@ import re
 
 from colorama import Fore
 # from pywidevine import license_protocol_pb2
-from third_party import license_protocol_updated_pb2 as wvproto
-from third_party.converter import Converter
-from third_party.device import Device, CDMSession, EncryptionKey
-from third_party.muxer import Muxer
-from third_party.parser import Parse
+from modules import license_protocol_updated_pb2 as wvproto
+from modules.converter import Converter
+from modules.device import Device, CDMSession, EncryptionKey
+from modules.muxer import Muxer
+from modules.parser import Parse
 from typing import List, Any
 from google.protobuf.message import EncodeError
 from Cryptodome.Random import random
@@ -26,19 +26,18 @@ from datetime import datetime
 from hyper.contrib import HTTP20Adapter
 from modules.config import load_configurations
 from modules.logging import setup_logging
-from third_party.utils import read_data,pretty_size,get_profiles,shakti_headers,get_android_esn,metadata_endpoint,default_file_name,supported_video_profiles,supported_audio_profiles,lang_codes
-from third_party.errors import Denied,GeoError,InvalidLanguage,LoginError,DecryptionError,InvalidProfile,MSLClientError,NetflixStatusError
+from modules.utils import read_data,pretty_size,get_profiles,shakti_headers,get_android_esn,metadata_endpoint,default_file_name,supported_video_profiles,supported_audio_profiles,lang_codes
+from modules.errors import Denied,GeoError,InvalidLanguage,LoginError,DecryptionError,InvalidProfile,MSLClientError,NetflixStatusError
 
 config = load_configurations()
 logging = setup_logging()
 
+def get_current_directory():
+    current_directory = os.getcwd()
+    return current_directory
+
 EMAIL = config["NETFLIX"]["EMAIL"]
 PASSWORD = config["NETFLIX"]["PASSWORD"]
-DEVICE = config["NETFLIX"]["DEVICE"]
-QUALITY = config["NETFLIX"]["QUALITY"]
-AUDIO_LANGUAGE = config["NETFLIX"]["AUDIO_LANGUAGE"]
-VIDEO_PROFILE = config["NETFLIX"]["VIDEO_PROFILE"]
-QUIET = config["NETFLIX"]["QUIET"]
 
 class NetflixClient:
     def __init__(
@@ -49,7 +48,7 @@ class NetflixClient:
         cookies_file: str="cookies/netflix.txt",
         download_path: str="content",
         audio_profile: str="aac",
-        video_profile: str="main",
+        video_profile: str="high",
         quality: int=1080,
         language: str="en-US",
         audio_language: list = ["English"],
@@ -172,6 +171,7 @@ class NetflixClient:
         license_b64 = data["result"][0]["licenseResponseBase64"]
         wvdecrypt.update_license(license_b64)
         keyswvdecrypt = wvdecrypt.start_process()[1]
+        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}- {Fore.WHITE}Keys: {Fore.RED}{keyswvdecrypt}")
         return keyswvdecrypt
 
     def get_viewables(self, any_id, episode="all", season=1) -> List[Any]:
@@ -956,7 +956,7 @@ class WVDecrypt:
         return True
     
 async def download_netflix(content_id, output):
-    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=f"{DEVICE}",quality=int(QUALITY),audio_language=["English"],language="en-EN",video_profile=f"{VIDEO_PROFILE}",quiet=False,)
+    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory(), audio_language=["English"],language="en-EN",quiet=False,)
     loop = asyncio.get_event_loop()
     viewables = await loop.run_in_executor(None, client.get_viewables, content_id)
     for viewable in viewables:

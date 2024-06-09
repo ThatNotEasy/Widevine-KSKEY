@@ -36,8 +36,28 @@ pip install -r requirements.txt
 
 To use WKSKEY-2.0, specify the Widevine license URL and other options through command-line arguments. Here's a basic usage example:
 
+## Basic usage:
 ```bash
-python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service prime
+python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service bitmovin
+```
+## With Proxy (COUNTRY CODE):
+```bash
+python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service bitmovin -pp US
+```
+## With Proxy (ROTAETE PROXY):
+```bash
+python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service bitmovin -pp rotate
+```
+## With Proxy (SCRAPE PROXY):
+```bash
+python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service bitmovin -pp scrape
+```
+
+## Netflix, Skyshowtime & HBOGO
+```bash
+python main.py -m "<WATCH_URL>" -s "skyshowtime"
+python main.py -c "<CONTENT_ID>" -s "netflix"
+python main.py -c "<CONTENT_ID>" -s "hbogo"
 ```
 
 ## Directory Structure

@@ -170,7 +170,7 @@ def download_video(url, save_name, keys, output_format, save_video_quality, save
         os.makedirs(temp_dir)
 
     lang = input(f"{Fore.GREEN}Subtitle Language {Fore.RED}(eg: EN): {Fore.WHITE}")
-    command = f'N_m3u8DL-RE.exe "{url}" --save-dir {temp_dir} --save-name {save_name}'
+    command = f'N_m3u8DL-RE "{url}" --save-dir {temp_dir} --save-name {save_name}'
     for key in keys:
         command += f' --key {key}'
     command += f' -mt -M {output_format} -sv {save_video_quality} -sa {save_audio_quality} -ss {lang}'

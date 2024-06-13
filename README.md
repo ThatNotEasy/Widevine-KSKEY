@@ -36,7 +36,7 @@ pip install -r requirements.txt
 
 To use WKSKEY-2.0, specify the Widevine license URL and other options through command-line arguments. Here's a basic usage example:
 
-## Basic usage:
+## Basic:
 ```bash
 python main.py --license-url [URL_LICENSE] --mpd-url [URL_MPD] --service bitmovin
 ```

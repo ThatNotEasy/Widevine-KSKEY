@@ -173,7 +173,7 @@ def download_video(url, save_name, keys, output_format, save_video_quality, save
     command = f'N_m3u8DL-RE "{url}" --save-dir {temp_dir} --save-name {save_name}'
     for key in keys:
         command += f' --key {key}'
-    command += f' -mt -M {output_format} -sv {save_video_quality} -sa {save_audio_quality} -ss {lang}'
+    command += f' -mt -M format={output_format}:muxer=ffmpeg -sv {save_video_quality} -sa {save_audio_quality} -ss {lang}'
     
     logging.info(f"{Fore.GREEN}Running command: {Fore.RED}{command}{Fore.RESET}")
     logging.info(f"{Fore.MAGENTA}Please be patient ..{Fore.RESET}")
@@ -217,7 +217,7 @@ def post_process_video(save_name, temp_dir):
     if os.path.exists(encrypted_file_path):
         os.remove(encrypted_file_path)
 
-def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality='best', save_audio_quality='best'):
+def drm_downloader(url, save_name, keys, output_format='mkv', save_video_quality='best', save_audio_quality='best'):
     valid_formats = ['mp4', 'ts', 'flv', 'mkv']
     if output_format not in valid_formats:
         raise ValueError(f"Invalid output_format '{output_format}'. Valid formats are: {', '.join(valid_formats)}")
@@ -237,6 +237,6 @@ def drm_downloader(url, save_name, keys, output_format='mp4', save_video_quality
 
     temp_dir = "content"
     if download_video(url, save_name, keys, output_format, save_video_quality, save_audio_quality):
-        post_process_video(save_name, temp_dir)
+        # post_process_video(save_name, temp_dir)
         return True
     return False

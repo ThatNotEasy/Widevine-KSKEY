@@ -108,7 +108,7 @@ def main():
             return
 
         service = args.service if args.service else colored_input("Enter the service name: ", Fore.CYAN).strip()
-        successful = drm_downloader(args.mpd_url, save_name, validated_keys, output_format='mp4')
+        successful = drm_downloader(args.mpd_url, save_name, validated_keys, output_format='mkv')
         
         if successful:
             logging.info("Content downloaded successfully.")

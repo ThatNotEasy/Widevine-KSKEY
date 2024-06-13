@@ -3,6 +3,7 @@ from colorama import init, Fore, Style
 from modules.downloader import drm_downloader, validate_keys
 from modules.logging import setup_logging
 from modules.arg_parser import parse_arguments
+from modules.downloader import fetch_mpd, fetch_mpd, parse_mpd, display_tracks
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
 from modules.pssh import get_pssh, amz_pssh, get_pssh_from_mpd, fetch_manifest_with_retry
 from services.netflix import NetflixClient, download_netflix
@@ -86,6 +87,7 @@ def main():
             return
 
         save_name = colored_input("Enter the output name (Without Extension): ", Fore.CYAN).strip()
+        print(Fore.MAGENTA + "=======================================================================================================")
         if not save_name:
             logging.error("Invalid save name provided.")
             return
@@ -94,6 +96,12 @@ def main():
             logging.error("Invalid Manifest URL.")
             return
 
+        mpd_content = fetch_mpd(args.mpd_url)
+        if not mpd_content:
+            print(Fore.RED + "Failed to fetch MPD content.")
+            return
+        
+        
         validated_keys = validate_keys(keys)
         if not validated_keys:
             logging.error("No valid keys available to proceed with the download.")

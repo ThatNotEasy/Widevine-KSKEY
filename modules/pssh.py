@@ -132,7 +132,6 @@ def get_pssh_from_mpd(mpd_url, proxy=None):
     
     if pssh == '':
         pssh = input('Unable to find PSSH in MPD. Edit getPSSH.py or enter PSSH manually: ')
-    
     return pssh
 
 def fetch_manifest_with_retry(url, proxy=None, retries=3, backoff_factor=2):

@@ -148,6 +148,10 @@ def proxyscrape() -> list:
         response.raise_for_status()
         proxies = response.text.split('\n')
         proxies = [proxy.strip() for proxy in proxies if proxy.strip()]
+        
+        # Ensure each proxy URL has a scheme
+        proxies = ["http://" + proxy if not proxy.startswith("http") else proxy for proxy in proxies]
+        
         logging.debug(f"Fetched {len(proxies)} proxies from ProxyScrape")
         return proxies
     except requests.RequestException as e:

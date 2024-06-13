@@ -8,7 +8,8 @@ import re
 
 from colorama import Fore
 # from pywidevine import license_protocol_pb2
-from modules import license_protocol_updated_pb2 as wvproto
+from modules.downloader import reencode_video_to_hd
+from modules import license_protocol_pb2 as wvproto
 from modules.converter import Converter
 from modules.device import Device, CDMSession, EncryptionKey
 from modules.muxer import Muxer
@@ -301,78 +302,99 @@ class Viewable:
     async def download(self, output=default_file_name) -> str:
         self.client._verbose(f"Proxy map: {self.client.proxies}")
         output_folder = f"content/{self.vid}"
-        muxed_filename = f"{self.client.download_path}/{output}"
+        muxed_filename = os.path.join(self.client.download_path, output)
         playlist = Parse(self.client.msl.load_playlist(self.vid), self.client)
         keys = self.client.get_keys(self.vid)
 
         video_stream = playlist.video_streams[0]
-        encrypted_filename = "".join([
-            f"{output_folder}/",
-            f"video[{self.vid}]",
-            f"[{video_stream['h']}p]",
-            f"[{self.client.video_profile.upper()}]"
-        ])
+        encrypted_filename = os.path.join(
+            output_folder, 
+            f"video[{self.vid}][{video_stream['h']}p][{self.client.video_profile.upper()}]"
+        )
         decrypted_filename = f"{encrypted_filename}_[Decrypted].mp4"
 
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-        if not os.path.exists(encrypted_filename) and \
-        not os.path.exists(decrypted_filename):
-            logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading, please be patient {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename} {Fore.RED}| {Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(video_stream['size'])}){Fore.RESET}")
-            await self.client._aria2c(
-                video_stream["url"],
-                encrypted_filename
-            )
-        if not os.path.exists(decrypted_filename):
-            logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Decrypting {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename}{Fore.RESET}")
-            await self.client._decrypt(encrypted_filename,decrypted_filename, keys)
-        await self.client._remux(decrypted_filename)
+        os.makedirs(output_folder, exist_ok=True)
 
-        for language in list(playlist.audio_streams.keys()) + \
-        list(playlist.audio_description_streams.keys()):
-            language_track = playlist.audio_streams.get(language,
-                playlist.audio_description_streams.get(language))
+        if not os.path.exists(encrypted_filename) and not os.path.exists(decrypted_filename):
+            logging.info(
+                f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading, please be patient {Fore.RED}| "
+                f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename} {Fore.RED}| "
+                f"{Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(video_stream['size'])}){Fore.RESET}"
+            )
+            await self.client._aria2c(video_stream["url"], encrypted_filename)
+
+        if not os.path.exists(decrypted_filename):
+            logging.info(
+                f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Decrypting {Fore.RED}| "
+                f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename}{Fore.RESET}"
+            )
+            await self.client._decrypt(encrypted_filename, decrypted_filename, keys)
+
+        await self.client._remux(decrypted_filename)
+        await self.download_audio_tracks(output_folder, playlist)
+        await self.download_subtitle_tracks(output_folder, playlist)
+
+        logging.info(
+            f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxing all tracks {Fore.RED}| "
+            f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{muxed_filename}{Fore.RESET}"
+        )
+        muxer = Muxer(output_folder, muxed_filename, self.client.verbose, self.client.keep)
+        final_name = await self.finalize_filename(muxer, muxed_filename)
+
+        logging.info(
+            f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxed successfully {Fore.RED}| "
+            f"{Fore.GREEN}Filename: {Fore.MAGENTA}{final_name} {Fore.RED}| "
+            f"{Fore.WHITE}Size: ({pretty_size(os.path.getsize(final_name))}){Fore.RESET}\n"
+        )
+
+        temp_dir = "content/"
+        reencoded_file = os.path.join(temp_dir, f"{self.vid}_hd.mp4")
+        reencode_video_to_hd(final_name, reencoded_file)
+        
+        return reencoded_file
+
+    async def download_audio_tracks(self, output_folder, playlist):
+        for language in list(playlist.audio_streams.keys()) + list(playlist.audio_description_streams.keys()):
+            language_track = playlist.audio_streams.get(language, playlist.audio_description_streams.get(language))
             if not language_track:
                 continue
             audio_stream = language_track[0]
-            audio_filename = "".join([
-                f"{output_folder}/",
-                f"audio[{self.vid}]",
-                f"[{audio_stream['language']}]",
-                f"[{audio_stream['language_code']}]",
-                f"[{self.client.audio_profile.upper()}]"
-            ])
+            audio_filename = os.path.join(
+                output_folder,
+                f"audio[{self.vid}][{audio_stream['language']}][{audio_stream['language_code']}][{self.client.audio_profile.upper()}]"
+            )
             if not os.path.exists(audio_filename):
-                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{audio_filename} {Fore.RED}| {Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(audio_stream['size'])}){Fore.RESET}")
-                await self.client._aria2c(
-                    audio_stream["url"],
-                    audio_filename
+                logging.info(
+                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}| "
+                    f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{audio_filename} {Fore.RED}| "
+                    f"{Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(audio_stream['size'])}){Fore.RESET}"
                 )
-                await self.client._demux_audio(audio_filename, 
-                    f"{audio_filename}.{self.client.audio_profile.lower()}")
-        for language in list(playlist.subtitle_streams.keys()) + \
-        list(playlist.forced_streams.keys()):
-            language_track = playlist.subtitle_streams.get(language,
-                playlist.forced_streams.get(language))
+                await self.client._aria2c(audio_stream["url"], audio_filename)
+                await self.client._demux_audio(audio_filename, f"{audio_filename}.{self.client.audio_profile.lower()}")
+
+    async def download_subtitle_tracks(self, output_folder, playlist):
+        for language in list(playlist.subtitle_streams.keys()) + list(playlist.forced_streams.keys()):
+            language_track = playlist.subtitle_streams.get(language, playlist.forced_streams.get(language))
             if not language_track:
                 continue
             subtitles = language_track[0]
-            subtitles_filename = "".join([
-                f"{output_folder}/",
-                f"subtitles[{self.vid}]",
-                f"[{subtitles['language']}]",
-                f"[{subtitles['language_code']}].vtt",
-            ])
+            subtitles_filename = os.path.join(
+                output_folder,
+                f"subtitles[{self.vid}][{subtitles['language']}][{subtitles['language_code']}].vtt"
+            )
             if not os.path.exists(subtitles_filename):
-                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}- {subtitles_filename}{Fore.RESET}\n")
+                logging.info(
+                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}- {subtitles_filename}{Fore.RESET}\n"
+                )
                 await self.client._aria2c(subtitles["url"], subtitles_filename)
-                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Converting {subtitles_filename}to SRT... {Fore.RED}- {subtitles_filename}{Fore.RESET}\n")
+                logging.info(
+                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Converting {subtitles_filename} to SRT... {Fore.RED}- {subtitles_filename}{Fore.RESET}\n"
+                )
                 Converter(subtitles_filename).to_srt()
                 if not self.client.keep:
                     os.remove(subtitles_filename)
-        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxing all tracks {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{muxed_filename}{Fore.RESET}")
-        muxer = Muxer(output_folder, muxed_filename, self.client.verbose, self.client.keep)
-        final_name = muxed_filename
+
+    async def finalize_filename(self, muxer, muxed_filename):
         file_data = await muxer.run()
 
         file_data["title"] = self.title
@@ -384,19 +406,20 @@ class Viewable:
         file_data["fseason"] = f"S{str(self.season).zfill(2)}" if self.season else ""
         file_data["fepisode"] = f"E{str(self.episode).zfill(2)}" if self.episode else ""
 
+        final_name = muxed_filename
         for k, v in file_data.items():
             if isinstance(v, list):
                 v = ".".join(list(map(str, list(dict.fromkeys(v)))))
             final_name = final_name.replace(f"${k}$", str(v)).replace("..", ".")
 
-        if not final_name.endswith(".mkv"):
-            final_name += ".mkv"
+        if not final_name.endswith(".mp4"):
+            final_name += ".mp4"
 
         if final_name != muxed_filename:
             if os.path.exists(final_name):
                 os.remove(final_name)
             os.rename(muxed_filename, final_name)
-        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxed successful {Fore.RED}| {Fore.GREEN}Filename: {Fore.MAGENTA}{final_name} {Fore.RED}| {Fore.WHITE}Size: ({pretty_size(os.path.getsize(final_name))}){Fore.RESET}\n")
+        
         return final_name
     
 class MSLClient:
@@ -956,7 +979,7 @@ class WVDecrypt:
         return True
     
 async def download_netflix(content_id, output):
-    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory(),quiet=False,)
+    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory(), audio_language=["English"],language="en-EN",quiet=False,)
     loop = asyncio.get_event_loop()
     viewables = await loop.run_in_executor(None, client.get_viewables, content_id)
     for viewable in viewables:

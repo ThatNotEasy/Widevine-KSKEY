@@ -49,7 +49,12 @@ def get_service_module(service_name):
         logging.error(f"No module named '{service_name}' found in 'services' package")
         sys.exit(1)
         
-
+def get_cookies_module(service_name):
+    try:
+        return importlib.import_module(f'cookies.{service_name}')
+    except ImportError:
+        logging.error(f"No module named '{service_name}' found in 'cookies' package")
+        sys.exit(1)
 
 metadata_endpoint = 'https://www.netflix.com/nq/website/memberapi/{}/metadata'
 default_file_name = "$ftitle$.$year$.$fseason$$fepisode$.NF.WEBDL.$quality$p.$audios$.$acodec$.$vcodec$-dvx.mkv"
@@ -66,8 +71,14 @@ def get_android_esn(quality: int) -> str:
         device_id = 2  # 4K quality
     elif quality >= 1080:
         device_id = 1  # Full HD quality
+    elif quality >= 720:
+        device_id = 3  # HD quality
+    elif quality >= 540:
+        device_id = 4  # qHD quality
+    elif quality >= 480:
+        device_id = 5  # SD quality
     else:
-        device_id = 0  # Standard quality
+        device_id = 0  # Lower than SD quality
     return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}"
 
 

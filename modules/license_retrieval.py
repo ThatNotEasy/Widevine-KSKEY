@@ -1,14 +1,13 @@
 import sys, requests, glob, os, base64, asyncio
 from base64 import b64encode, b64decode
-from modules.utils import get_service_module
+from modules.utils import get_service_module, get_cookies_module
 from pywidevine.pssh import PSSH
 from pywidevine.device import Device
 from pywidevine.cdm import Cdm
 from services.hbogo import get_license
-from modules.pssh import get_pssh
-from modules.proxy import init_proxy, allowed_countries
+from modules.pssh import get_pssh, get_pssh_from_mpd
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
-from services.netflix import NetflixClient, download_netflix
+from services.netflix import download_netflix
 from colorama import Fore
 from modules.logging import setup_logging
 
@@ -38,17 +37,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         data = get_license(content_id)
         logging.debug(f"License data: {data}")
         return True, []
-    
-    if service_name == "netflix":
-        if not content_id:
-            logging.error("Content ID is required for Netflix service.")
-            return False, None
-        asyncio.run(download_netflix(content_id, 'output'))
-        return True, []
-
-    if not pssh and service_name != "netflix":
-        logging.error("No PSSH data provided or extracted.")
-        return False, None
 
     service_module = get_service_module(service_name)
     
@@ -76,7 +64,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         logging.error("No PSSH data provided or extracted.")
         return False, None
     
-
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
@@ -96,6 +83,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "unifi":
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
+    elif service_name == "flow":
+        response = requests.post(url=lic_url, headers=headers, data=challenge, cookies=cookies, proxies=proxy)
+        print(response.text)
     elif service_name == "skyshowtime":
         token_url = 'https://ovp.skyshowtime.com/auth/tokens'
         vod_url = 'https://ovp.skyshowtime.com/video/playouts/vod'

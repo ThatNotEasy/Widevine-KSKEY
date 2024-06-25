@@ -8,7 +8,7 @@ from modules.logging import setup_logging
 import requests
 import random
 import os
-import uuid
+import uuid, secrets
 from colorama import Fore
 from http.cookiejar import MozillaCookieJar
 
@@ -78,8 +78,13 @@ def get_android_esn(quality: int) -> str:
     elif quality >= 480:
         device_id = 5  # SD quality
     else:
-        device_id = 0  # Lower than SD quality
-    return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}"
+        device_brand = "SAMSUNG"
+        device_model = "SM-G950F"  # Example model (Samsung Galaxy S8)
+        widevine_level = "L1"  # Level 1 indicates support for HD or higher quality
+        # Generate a unique identifier part using a secure method
+        unique_id = secrets.token_hex(8)  # Generates a 16-character hexadecimal string
+        esn = f"NFANDROID1-PRV-{device_brand}-{device_model}-{widevine_level}-{unique_id}"
+        return esn
 
 
 def shakti_headers(build_id):
@@ -93,12 +98,12 @@ def shakti_headers(build_id):
         "Pragma": "no-cache",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         "X-Netflix.browserName": "Firefox",
         "X-Netflix.browserVersion": "123",
         "X-Netflix.clientType": "akira",
         "X-Netflix.Client.Request.Name": "ui/falcorUnclassified",
-        "X-Netflix.esnPrefix": "NFCDFF-02-",
+        "X-Netflix.esnPrefix": "NFANDROID1-PRV",
         "X-Netflix.osFullName": "Windows 10",
         "x-netflix.nq.stack": "prod",
         "X-Netflix.osName": "Windows",
@@ -113,7 +118,7 @@ def build_headers():
     return {
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-Mode": "navigate",
@@ -223,19 +228,48 @@ supported_audio_profiles = {
 
 def get_profiles(video_profile: str, audio_profile: str, quality: int):
     profiles = ["webvtt-lssdh-ios8"]
-    profile = supported_video_profiles.get(video_profile.lower())
+    
+    # Ensure the dictionaries are available in the function
+    supported_video_profiles = {
+        "hevc": ["profile1-{0}", "profile2-{0}"],
+        "hdr": ["profile3-{0}", "profile4-{0}"],
+        "other": ["profile5-{0}", "profile6-{0}"]
+    }
+    supported_audio_profiles = {
+        "aac": ["audio1", "audio2"],
+        "ac3": ["audio3", "audio4"],
+        "other": ["audio5"]
+    }
+    
+    # Retrieve the video profiles list based on the video profile input
+    profile = supported_video_profiles.get(video_profile.lower(), supported_video_profiles['other'])
+    
+    # Condition for 4K quality
     if quality >= 2160:
-        profiles += list(map(lambda x: x.format(51), profile))
-        profiles += list(map(lambda x: x.format(50), profile))
+        profiles += [x.format(51) for x in profile]
+        profiles += [x.format(50) for x in profile]
+    
+    # Condition for Full HD quality
     if quality >= 1080:
         if video_profile.lower() in ["hevc", "hdr"]:
-            profiles += list(map(lambda x: x.format(41), profile))
-        profiles += list(map(lambda x: x.format(40), profile))
+            profiles += [x.format(41) for x in profile]
+        profiles += [x.format(40) for x in profile]
+    
+    # Condition for HD quality
     if quality >= 720:
-        profiles += list(map(lambda x: x.format(31), profile))
+        profiles += [x.format(31) for x in profile]
+    
+    # Adding 540p quality condition
+    if quality >= 540:
+        profiles += [x.format(25) for x in profile]  # Example profile for 540p
+    
+    # Condition for SD quality
     if quality >= 480:
-        profiles += list(map(lambda x: x.format(30), profile))
-        if video_profile.lower not in ["hevc", "hdr"]:
-            profiles += list(map(lambda x: x.format(22), profile))
-    profiles += supported_audio_profiles.get(audio_profile.lower())
+        profiles += [x.format(30) for x in profile]
+        if video_profile.lower() not in ["hevc", "hdr"]:
+            profiles += [x.format(22) for x in profile]
+    
+    # Retrieve the audio profiles based on the audio profile input
+    profiles += supported_audio_profiles.get(audio_profile.lower(), supported_audio_profiles['other'])
+    
     return profiles

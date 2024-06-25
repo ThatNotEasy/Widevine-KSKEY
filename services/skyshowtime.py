@@ -17,6 +17,7 @@ def get_headers():
     'Sec-Fetch-Site': 'same-site',
     'Sec-GPC': '1',
     'Connection': 'keep-alive',
+    'X-Forwarded-For': '89.45.7.28'
     # Requests doesn't support trailers
     # 'TE': 'trailers',
 }

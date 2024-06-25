@@ -49,20 +49,17 @@ class Engine:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def get_proxy(self, tunnels, tls=False) -> str:
-        login = f"user-uuid-{self.settings.user_uuid}"
-        proxies = dict(tunnels)
+    def get_proxy(self, tunnels, tls=False):
         protocol = "https" if tls else "http"
-        for k, v in proxies["ip_list"].items():
-            proxy_str = "%s://%s:%s@%s:%d" % (
-                protocol,
-                login,
-                proxies["agent_key"],
-                k if tls else v,
-                proxies["port"][self.settings.port_type_choice],
-            )
-            logging.debug(f"Generated proxy string: {proxy_str}")
-            return proxy_str
+        try:
+            login_credentials = f"user-uuid-{self.settings.user_uuid}"
+            for ip_address, port_details in tunnels["ip_list"].items():
+                proxy_url = f"{protocol}://{login_credentials}:{tunnels['agent_key']}@{ip_address}:{port_details}"
+                logging.debug(f"Generated proxy URL: {proxy_url}")
+                return proxy_url
+        except KeyError as e:
+            logging.error(f"Key missing when generating proxy URL: {e}")
+            raise
 
     def generate_session_key(self, timeout: float = 10.0) -> str:
         post_data = {"login": "1", "ver": self.settings.ext_ver}
@@ -179,13 +176,14 @@ def rotate_proxy():
         response = requests.get(ROTATE_PROXY)
         response.raise_for_status()
         data = response.json()
-        proxies = [
-            f"http://{proxy['ipPort']}" for proxy in data['proxies'] if proxy['protocol'].lower() == 'http'
-        ]
-        return proxies
+        # Select the first available HTTP proxy and format correctly
+        for proxy in data['proxies']:
+            if proxy['protocol'].lower() == 'http':
+                return {"http": f"http://{proxy['ipPort']}", "https": f"http://{proxy['ipPort']}"}
+        raise ValueError("No suitable proxy found")
     except requests.RequestException as e:
         logging.error(f"Error fetching proxies: {e}")
-        return []
+        raise
 
 allowed_countries = [
     "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AR", "AT", "AU", "AW", "AZ", "BA", "BB", "BD", "BE", "BF",

@@ -5,14 +5,15 @@ import requests
 import xml.etree.ElementTree as ET
 from pymediainfo import MediaInfo
 from colorama import init, Fore
+import random, tempfile, string
 from modules.logging import setup_logging
 
 init(autoreset=True)
 
 logging = setup_logging()
 
-def fetch_mpd(mpd_url, proxy=None):
-    response = requests.get(mpd_url, proxies=proxy)
+def fetch_mpd(mpd_url, headers=None, proxy=None):
+    response = requests.get(mpd_url, headers=headers, proxies=proxy)
     response.raise_for_status()
     return response.text
 
@@ -240,3 +241,74 @@ def drm_downloader(url, save_name, keys, output_format='mkv', save_video_quality
         # post_process_video(save_name, temp_dir)
         return True
     return False
+
+def get_random_folder(base_dir='content'):
+    """Generate a random folder name inside the base_dir and create it."""
+    folder_name = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    folder_path = os.path.join(base_dir, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+    return folder_path
+
+def list_available_formats(url):
+    """List the available formats for the given URL using yt-dlp."""
+    temp_output = tempfile.mktemp(dir='content')
+    command = f'yt-dlp -F --allow-u --list-formats "{url}" > "{temp_output}" 2>&1'
+    os.system(command)
+    
+    with open(temp_output, 'r') as file:
+        format_output = file.read()
+    os.unlink(temp_output)
+    
+    return format_output
+
+def yt_dlp_downloader(url, download_speed=1, format_option='best'):
+    """
+    Attempts to download the video from the given URL using yt-dlp with the specified format.
+    Captures output to handle specific errors related to format availability.
+    Args:
+        url (str): The URL of the video to download.
+        download_speed (int, optional): Download speed limit in MBps. Default is 1 MBps.
+        format_option (str, optional): Format specifier for yt-dlp. Default is 'best'.
+    Returns:
+        str: Path to the downloaded video or a specific error message.
+    """
+    try:
+        output_template = os.path.join(get_random_folder(), '%(title)s.%(ext)s')
+        temp_output = tempfile.mktemp(dir='content')  # Create a temporary file in content directory to capture output
+
+        # Prepare command with output redirection to temp file
+        command = (
+            f'yt-dlp -f {format_option} "{url}" '
+            '--downloader aria2c '
+            '--allow-unplayable-formats '
+            '--ignore-errors '
+            '--no-abort-on-error '
+            '--no-warnings '
+            '--quiet '
+            '--merge-output-format mkv '
+            f'--limit-rate {download_speed * 1024 * 1024} '
+            f'--output "{output_template}" > "{temp_output}" 2>&1'
+        )
+
+        # Execute the command
+        result = os.system(command)
+        if result != 0:
+            # Read the output from the temporary file
+            with open(temp_output, 'r') as file:
+                output = file.read()
+            os.unlink(temp_output)  # Remove the temporary file after reading
+
+            if "Requested format is not available" in output:
+                logging.error("yt-dlp reported an error: " + output)
+                available_formats = list_available_formats(url)
+                return "Error: Requested format is not available. Use '--list-formats' for a list of available formats.\nAvailable formats:\n" + available_formats
+            else:
+                logging.error("yt-dlp failed with exit code: " + str(result))
+                return "Download failed. Check logs for details."
+
+        os.unlink(temp_output)  # Clean up the temporary file
+        return f"Downloaded successfully to {output_template}"
+
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        return f"An unexpected error occurred: {e}"

@@ -148,7 +148,7 @@ def fetch_manifest_with_retry(url, proxy=None, retries=3, backoff_factor=2):
                     country_code = input("Proxy? (2 letter country code or N for no): ").strip().upper()
                     if len(country_code) == 2 and country_code in allowed_countries:
                         proxy = {"http": init_proxy({"zone": country_code, "port": "peer"})}
-                        print(f"Using proxy {proxy['http']}")
+                        # print(f"Using proxy {proxy['http']}")
                     elif country_code == 'N':
                         proxy = None
                     else:

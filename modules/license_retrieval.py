@@ -1,3 +1,4 @@
+import modules.proxy
 import sys, requests, glob, os, base64, asyncio
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module, get_cookies_module
@@ -67,7 +68,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
-        # print(response.text)
+        print(response.text)
     elif service_name in ["astro", "apple", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
@@ -99,6 +100,11 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=license_url, headers=headers, data=challenge, proxies=proxy)
     elif service_name == "udemy":
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+    elif service_name == "virgintv":
+        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+    elif service_name == "directtv":
+        data["licenseChallenge"] = challenge_b64
+        response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
@@ -124,6 +130,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["license"]
     elif service_name == "filmo":
         license_b64 = base64.b64encode(response.content)
+    elif service_name == "virgintv":
+        license_b64 = response.content
+    elif service_name == "directtv":
+        license_b64 = response.json()['licenseData']
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

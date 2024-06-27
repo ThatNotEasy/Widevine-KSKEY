@@ -65,7 +65,7 @@ def random_hex(length: int) -> str:
 def pretty_size(size: int) -> str:
     return f"{size/float(1<<20):,.0f}MiB"
 
-manifest_esn = "NFCDCH-02-L6JNYW0LWGPUCQVQ23JMWQW95UH1J1"
+manifest_esn = f"NFCDIE-03-{random_hex(30)}"
 
 def get_android_esn(quality: int) -> str:
     if quality >= 2160:
@@ -74,7 +74,7 @@ def get_android_esn(quality: int) -> str:
         device_id = 1  # Full HD quality
     else:
         device_id = 0  # Standard quality
-    return manifest_esn
+    return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}"
 
 
 def shakti_headers(build_id):

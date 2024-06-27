@@ -65,26 +65,16 @@ def random_hex(length: int) -> str:
 def pretty_size(size: int) -> str:
     return f"{size/float(1<<20):,.0f}MiB"
 
-manifest_esn = f"NFCDIE-03-{random_hex(30)}"
+manifest_esn = "NFCDCH-02-L6JNYW0LWGPUCQVQ23JMWQW95UH1J1"
+
 def get_android_esn(quality: int) -> str:
     if quality >= 2160:
         device_id = 2  # 4K quality
     elif quality >= 1080:
         device_id = 1  # Full HD quality
-    elif quality >= 720:
-        device_id = 3  # HD quality
-    elif quality >= 540:
-        device_id = 4  # qHD quality
-    elif quality >= 480:
-        device_id = 5  # SD quality
     else:
-        device_brand = "SAMSUNG"
-        device_model = "SM-G950F"  # Example model (Samsung Galaxy S8)
-        widevine_level = "L1"  # Level 1 indicates support for HD or higher quality
-        # Generate a unique identifier part using a secure method
-        unique_id = secrets.token_hex(8)  # Generates a 16-character hexadecimal string
-        esn = f"NFANDROID1-PRV-{device_brand}-{device_model}-{widevine_level}-{unique_id}"
-        return esn
+        device_id = 0  # Standard quality
+    return manifest_esn
 
 
 def shakti_headers(build_id):
@@ -123,8 +113,7 @@ def build_headers():
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Dest": "document",
-        "Accept-Language": "en,en-US;q=0.9",
-        "X-Forwarded-For": "194.36.178.234"
+        "Accept-Language": "en,en-US;q=0.9"
     }
 
 def get_build_id() -> str:
@@ -228,48 +217,19 @@ supported_audio_profiles = {
 
 def get_profiles(video_profile: str, audio_profile: str, quality: int):
     profiles = ["webvtt-lssdh-ios8"]
-    
-    # Ensure the dictionaries are available in the function
-    supported_video_profiles = {
-        "hevc": ["profile1-{0}", "profile2-{0}"],
-        "hdr": ["profile3-{0}", "profile4-{0}"],
-        "other": ["profile5-{0}", "profile6-{0}"]
-    }
-    supported_audio_profiles = {
-        "aac": ["audio1", "audio2"],
-        "ac3": ["audio3", "audio4"],
-        "other": ["audio5"]
-    }
-    
-    # Retrieve the video profiles list based on the video profile input
-    profile = supported_video_profiles.get(video_profile.lower(), supported_video_profiles['other'])
-    
-    # Condition for 4K quality
+    profile = supported_video_profiles.get(video_profile.lower())
     if quality >= 2160:
-        profiles += [x.format(51) for x in profile]
-        profiles += [x.format(50) for x in profile]
-    
-    # Condition for Full HD quality
+        profiles += list(map(lambda x: x.format(51), profile))
+        profiles += list(map(lambda x: x.format(50), profile))
     if quality >= 1080:
         if video_profile.lower() in ["hevc", "hdr"]:
-            profiles += [x.format(41) for x in profile]
-        profiles += [x.format(40) for x in profile]
-    
-    # Condition for HD quality
+            profiles += list(map(lambda x: x.format(41), profile))
+        profiles += list(map(lambda x: x.format(40), profile))
     if quality >= 720:
-        profiles += [x.format(31) for x in profile]
-    
-    # Adding 540p quality condition
-    if quality >= 540:
-        profiles += [x.format(25) for x in profile]  # Example profile for 540p
-    
-    # Condition for SD quality
+        profiles += list(map(lambda x: x.format(31), profile))
     if quality >= 480:
-        profiles += [x.format(30) for x in profile]
-        if video_profile.lower() not in ["hevc", "hdr"]:
-            profiles += [x.format(22) for x in profile]
-    
-    # Retrieve the audio profiles based on the audio profile input
-    profiles += supported_audio_profiles.get(audio_profile.lower(), supported_audio_profiles['other'])
-    
+        profiles += list(map(lambda x: x.format(30), profile))
+        if video_profile.lower not in ["hevc", "hdr"]:
+            profiles += list(map(lambda x: x.format(22), profile))
+    profiles += supported_audio_profiles.get(audio_profile.lower())
     return profiles

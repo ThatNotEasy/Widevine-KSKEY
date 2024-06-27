@@ -105,6 +105,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "directtv":
         data["licenseChallenge"] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
+    elif service_name == "canal":
+        data["ServiceRequest"]["InData"]["ChallengeInfo"] = challenge_b64
+        response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
@@ -134,6 +137,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.content
     elif service_name == "directtv":
         license_b64 = response.json()['licenseData']
+    elif service_name == "canal":
+        license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

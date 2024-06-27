@@ -5,7 +5,7 @@ import json
 import time
 import os
 import re
-
+import binascii
 from colorama import Fore
 # from pywidevine import license_protocol_pb2
 from modules.downloader import reencode_video_to_hd
@@ -41,28 +41,32 @@ EMAIL = config["NETFLIX"]["EMAIL"]
 PASSWORD = config["NETFLIX"]["PASSWORD"]
 
 class NetflixClient:
-    def __init__(
-        self,
-        email: str,
-        password: str,
-        device: str,
-        cookies_file: str="cookies/netflix.txt",
-        download_path: str="content",
-        audio_profile: str="aac",
-        video_profile: str="high",
-        quality: int=1080,
-        language: str="en-US",
-        audio_language: list = ["English"],
-        audio_description_language: list = [],
-        subtitle_language: list = [],
-        forced_language: list = [],
-        proxies: dict = {},
-        keep: bool = False,
-        decryption_method: str = "shaka",
-        decrypt_executable: str = "shaka",
-        verbose: bool = False,
-        quiet: bool = False
-    ):
+    def __init__(self, email: str, password: str, device: str, cookies_file: str="cookies/netflix.txt",
+                 download_path: str="content", audio_profile: str="aac", video_profile: str="high",
+                 quality: int=1080, language: str="en-US", audio_language: list=["English"],
+                 audio_description_language: list=[], subtitle_language: list=[], forced_language: list=[],
+                 proxies: dict={}, keep: bool=False, decryption_method: str="shaka", decrypt_executable: str="shaka",
+                 verbose: bool=False, quiet: bool=False):
+        self.email = email
+        self.password = password
+        self.device = device
+        self.cookies_file = cookies_file
+        self.download_path = download_path
+        self.audio_profile = audio_profile
+        self.video_profile = video_profile
+        self.quality = quality
+        self.language = language
+        self.audio_language = audio_language
+        self.audio_description_language = audio_description_language
+        self.subtitle_language = subtitle_language
+        self.forced_language = forced_language
+        self.proxies = proxies
+        self.keep = keep
+        self.decryption_method = decryption_method
+        self.decrypt_executable = decrypt_executable
+        self.verbose = verbose
+        self.quiet = quiet
+        
         if video_profile.lower() not in map(lambda x: x.lower(),
                 supported_video_profiles.keys()):
             raise InvalidProfile(f"Invalid video profile: {video_profile}")
@@ -106,7 +110,7 @@ class NetflixClient:
 
     def log(self, *args):
         if not self.quiet:
-            logging.info(*args)
+            logging.debug(*args)
 
     def _verbose_file(self, content, name=""):
         if not self.verbose:
@@ -123,11 +127,11 @@ class NetflixClient:
             pass
         with open(final, "w+", encoding="utf-8") as file:
             file.write(content)
-        logging.info(f"Verbose saved in {final}")
+        logging.debug(f"Verbose saved in {final}")
 
     def _verbose(self, *args):
         if self.verbose:
-            logging.info(*args)
+            logging.debug(*args)
 
     def get_metadata(self, netflix_id) -> dict:
         build_id = self.cookies["build_id"]
@@ -157,7 +161,7 @@ class NetflixClient:
             return int(match.group(1)) <= number <= int(match.group(2))
 
     def get_keys(self, media_id) -> list:
-        playlist = self.msl.load_playlist(media_id, ignore=["hevc-hdr-main10-L1-dash-cenc"])    
+        playlist = self.msl.load_playlist(media_id, ignore=["playready-h264mpl40-dash"])    
         drm_header = playlist["result"]["video_tracks"][0]["drmHeader"]["bytes"]
         cert_data_b64 = "CAUSwwUKvQIIAxIQ5US6QAvBDzfTtjb4tU/7QxiH8c+TBSKOAjCCAQoCggEBAObzvlu2hZRsapAPx4Aa4GUZj4/GjxgXUtBH4THSkM40x63wQeyVxlEEo1D/T1FkVM/S+tiKbJiIGaT0Yb5LTAHcJEhODB40TXlwPfcxBjJLfOkF3jP6wIlqbb6OPVkDi6KMTZ3EYL6BEFGfD1ag/LDsPxG6EZIn3k4S3ODcej6YSzG4TnGD0szj5m6uj/2azPZsWAlSNBRUejmP6Tiota7g5u6AWZz0MsgCiEvnxRHmTRee+LO6U4dswzF3Odr2XBPD/hIAtp0RX8JlcGazBS0GABMMo2qNfCiSiGdyl2xZJq4fq99LoVfCLNChkn1N2NIYLrStQHa35pgObvhwi7ECAwEAAToQdGVzdC5uZXRmbGl4LmNvbRKAA4TTLzJbDZaKfozb9vDv5qpW5A/DNL9gbnJJi/AIZB3QOW2veGmKT3xaKNQ4NSvo/EyfVlhc4ujd4QPrFgYztGLNrxeyRF0J8XzGOPsvv9Mc9uLHKfiZQuy21KZYWF7HNedJ4qpAe6gqZ6uq7Se7f2JbelzENX8rsTpppKvkgPRIKLspFwv0EJQLPWD1zjew2PjoGEwJYlKbSbHVcUNygplaGmPkUCBThDh7p/5Lx5ff2d/oPpIlFvhqntmfOfumt4i+ZL3fFaObvkjpQFVAajqmfipY0KAtiUYYJAJSbm2DnrqP7+DmO9hmRMm9uJkXC2MxbmeNtJHAHdbgKsqjLHDiqwk1JplFMoC9KNMp2pUNdX9TkcrtJoEDqIn3zX9p+itdt3a9mVFc7/ZL4xpraYdQvOwP5LmXj9galK3s+eQJ7bkX6cCi+2X+iBmCMx4R0XJ3/1gxiM5LiStibCnfInub1nNgJDojxFA3jH/IuUcblEf/5Y0s1SzokBnR8V0KbA=="
         wvdecrypt = WVDecrypt(init_data_b64=drm_header,cert_data_b64=cert_data_b64,device=self.device)

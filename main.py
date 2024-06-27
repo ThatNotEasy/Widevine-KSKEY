@@ -22,10 +22,6 @@ def main():
     clear_screen()
     print_title('Widevine-KSKEY')
     args = parse_arguments()
-    
-    if args.content_id:
-        logging.info(args.content_id)
-        process_media_with_tmdb(args.content_id)
 
     if not args.service:
         logging.error("No service specified. Please specify a service to proceed.")

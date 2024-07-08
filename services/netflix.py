@@ -983,7 +983,7 @@ class WVDecrypt:
         return True
     
 async def download_netflix(content_id, output):
-    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory(), audio_language=["English"],language="en-EN",quiet=False,)
+    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory())
     loop = asyncio.get_event_loop()
     viewables = await loop.run_in_executor(None, client.get_viewables, content_id)
     for viewable in viewables:

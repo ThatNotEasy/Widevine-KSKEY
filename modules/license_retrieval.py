@@ -1,5 +1,4 @@
-import modules.proxy
-import sys, requests, glob, os, base64, asyncio
+import re, requests, glob, os, base64
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module, get_cookies_module
 from pywidevine.pssh import PSSH
@@ -8,7 +7,9 @@ from pywidevine.cdm import Cdm
 from services.hbogo import get_license
 from modules.pssh import get_pssh, get_pssh_from_mpd
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
+from services.directtv import get_data
 from services.netflix import download_netflix
+from services import paralelo
 from colorama import Fore
 from modules.logging import setup_logging
 
@@ -38,13 +39,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         data = get_license(content_id)
         logging.debug(f"License data: {data}")
         return True, []
-
-    service_module = get_service_module(service_name)
-    
-    headers = getattr(service_module, 'get_headers', lambda: {})()
-    data = getattr(service_module, 'get_data', lambda: {})()
-    params = getattr(service_module, 'get_params', lambda: {})()
-    cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
     # logging.debug(f"{Fore.GREEN}Headers: {Fore.YELLOW}{headers}{Fore.RESET}")
     # print(Fore.MAGENTA + "=============================================================================================================")
@@ -59,7 +53,14 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     session_id = cdm.open()
     challenge = cdm.get_license_challenge(session_id, PSSH(pssh))
     challenge_b64 = b64encode(challenge).decode('utf-8')
-    # print(challenge_b64)
+    # print(challenge_b64).add()
+    
+    service_module = get_service_module(service_name)
+    
+    headers = getattr(service_module, 'get_headers', lambda: {})()
+    data = getattr(service_module, 'get_data', lambda: {})()
+    params = getattr(service_module, 'get_params', lambda: {})()
+    cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
     if not pssh:
         logging.error("No PSSH data provided or extracted.")
@@ -104,14 +105,18 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "directtv":
         data["licenseChallenge"] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
+        response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
     elif service_name == "canal":
         data["ServiceRequest"]["InData"]["ChallengeInfo"] = challenge_b64
         response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
+    elif service_name == "paralelo":
+        data = paralelo.get_data().get('query')
+        response = requests.post(url=lic_url, headers=headers, json={'query': data}, proxies=proxy)
+    elif service_name == "channel5":
+        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
-
     if response.status_code != 200:
         logging.error(f"Failed to retrieve license: {response.text}")
         return False, None
@@ -139,6 +144,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()['licenseData']
     elif service_name == "canal":
         license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
+    elif service_name == "paralelo":
+        license_b64 = response.json()["data"]["drm_license"]["license"]
+    elif service_name == "channel5":
+        license_b64 = b64encode(response.content).decode()
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

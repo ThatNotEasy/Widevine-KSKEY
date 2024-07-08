@@ -65,8 +65,8 @@ def random_hex(length: int) -> str:
 def pretty_size(size: int) -> str:
     return f"{size/float(1<<20):,.0f}MiB"
 
-manifest_esn = f"NFCDIE-03-{random_hex(30)}"
 
+manifest_esn = f"NFCDIE-03-{random_hex(30)}"
 def get_android_esn(quality: int) -> str:
     if quality >= 2160:
         device_id = 2  # 4K quality
@@ -74,7 +74,7 @@ def get_android_esn(quality: int) -> str:
         device_id = 1  # Full HD quality
     else:
         device_id = 0  # Standard quality
-    return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}"
+    return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}" # NFCDCH-02-L6JNYW0LWGPUCQVQ23JMWQW95UH1J1
 
 
 def shakti_headers(build_id):
@@ -88,12 +88,12 @@ def shakti_headers(build_id):
         "Pragma": "no-cache",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
         "X-Netflix.browserName": "Firefox",
         "X-Netflix.browserVersion": "123",
         "X-Netflix.clientType": "akira",
         "X-Netflix.Client.Request.Name": "ui/falcorUnclassified",
-        "X-Netflix.esnPrefix": "NFANDROID1-PRV",
+        "X-Netflix.esnPrefix": "NFCDFF-02-",
         "X-Netflix.osFullName": "Windows 10",
         "x-netflix.nq.stack": "prod",
         "X-Netflix.osName": "Windows",
@@ -108,12 +108,13 @@ def build_headers():
     return {
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Dest": "document",
-        "Accept-Language": "en,en-US;q=0.9"
+        "Accept-Language": "en,en-US;q=0.9",
+        "X-Forwarded-For": "194.36.178.234"
     }
 
 def get_build_id() -> str:

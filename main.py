@@ -2,13 +2,12 @@ import sys
 import os
 import asyncio
 from colorama import init, Fore, Style
-from modules.tracks import TMDB, process_media_with_tmdb
 from modules.downloader import drm_downloader, validate_keys, fetch_mpd, parse_mpd, display_tracks, yt_dlp_downloader
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
-from modules.pssh import get_pssh, amz_pssh, get_pssh_from_mpd, fetch_manifest_with_retry
+from modules.pssh import get_pssh, amz_pssh, get_pssh_from_mpd, fetch_manifest_with_retry, fetch_m3u8, extract_pssh_from_m3u8
 from services.netflix import NetflixClient, download_netflix
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input
 from modules.license_retrieval import get_license_keys
@@ -79,6 +78,12 @@ def get_pssh_data(args, proxy):
             return get_pssh(args.mpd_url, proxy)
         except Exception as e:
             logging.error(f"An error occurred fetching PSSH data: {e}")
+            return None
+    elif args.mpd_url:
+        try:
+            return extract_pssh_from_m3u8(args.mpd_url)
+        except Exception as e:
+            logging.error(f"An error occurred extracting PSSH from M3U8: {e}")
             return None
     else:
         return args.pssh

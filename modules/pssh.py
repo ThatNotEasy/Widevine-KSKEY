@@ -57,16 +57,6 @@ def extract_kid_and_pssh_from_mpd(manifest):
         logging.error(f"Error extracting KID and PSSH from MPD manifest: {e}")
         raise
 
-def extract_kid_and_pssh(url, proxy=None):
-    manifest = fetch_manifest(url, proxy)
-    if '.mpd' in url:
-        return extract_kid_and_pssh_from_mpd(manifest)
-    elif '.m3u8' in url:
-        logging.warning("KID and PSSH extraction for m3u8 manifests is not supported.")
-        return None, None
-    else:
-        raise ValueError(f"Unsupported manifest type for URL: {url}")
-
 def get_pssh(url, proxy=None):
     try:
         kid, pssh = extract_kid_and_pssh(url, proxy)
@@ -133,6 +123,35 @@ def get_pssh_from_mpd(mpd_url, proxy=None):
     if pssh == '':
         pssh = input('Unable to find PSSH in MPD. Edit getPSSH.py or enter PSSH manually: ')
     return pssh
+
+def fetch_m3u8(url: str) -> m3u8.M3U8:
+    response = requests.get(url)
+    response.raise_for_status()
+    return m3u8.loads(response.text)
+
+def extract_pssh_from_m3u8(m3u8_obj: m3u8.M3U8) -> str:
+    keys = m3u8_obj.keys + m3u8_obj.session_keys
+    for key in keys:
+        if key and key.uri and key.uri.startswith('data:text/plain;base64,'):
+            base64_data = key.uri.split(',')[1]
+            pssh_data = base64.b64decode(base64_data)
+            return base64.b64encode(pssh_data).decode('utf-8')
+    return None
+
+def extract_kid_and_pssh(url, proxy=None):
+    manifest = fetch_manifest(url, proxy)
+    if '.mpd' in url:
+        return extract_kid_and_pssh_from_mpd(manifest)
+    elif '.m3u8' in url:
+        m3u8_obj = fetch_m3u8(url)
+        pssh = extract_pssh_from_m3u8(m3u8_obj)
+        if pssh:
+            return None, pssh
+        else:
+            logging.warning("PSSH extraction from m3u8 manifests failed.")
+            return None, None
+    else:
+        raise ValueError(f"Unsupported manifest type for URL: {url}")
 
 def fetch_manifest_with_retry(url, proxy=None, retries=3, backoff_factor=2):
     for i in range(retries):

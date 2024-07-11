@@ -114,6 +114,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = requests.post(url=lic_url, headers=headers, json={'query': data}, proxies=proxy)
     elif service_name == "channel5":
         response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
+    elif service_name == "vtmgo":
+        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
     else:
         response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
@@ -148,6 +150,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["data"]["drm_license"]["license"]
     elif service_name == "channel5":
         license_b64 = b64encode(response.content).decode()
+    elif service_name == "vtmgo":
+        license_b64 = response.json()["license"]
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

@@ -1,4 +1,4 @@
-import re, requests, glob, os, base64
+import re, requests, glob, os, base64, json
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module, get_cookies_module
 from pywidevine.pssh import PSSH
@@ -14,6 +14,7 @@ from colorama import Fore
 from modules.logging import setup_logging
 
 logging = setup_logging()
+session = requests.Session()
 
 def load_first_wvd_file(directory="."):
     wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
@@ -68,25 +69,28 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
         print(response.text)
-    elif service_name in ["astro", "apple", "music-amz"]:
+    elif service_name in ["astro", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
+    elif service_name == "apple":
+        data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
+        response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
     elif service_name =="tonton":
-        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge)
-        response = requests.post(url=lic_url, headers=headers, data=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, data=data, proxies=proxy)
     elif service_name in ["vdocipher", "newsnow"]:
         data["licenseRequest"] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll", "hbomax"]:
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "unifi":
-        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy, verify=False)
     elif service_name == "flow":
-        response = requests.post(url=lic_url, headers=headers, data=challenge, cookies=cookies, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, data=challenge, cookies=cookies, proxies=proxy)
         print(response.text)
     elif service_name == "skyshowtime":
         token_url = 'https://ovp.skyshowtime.com/auth/tokens'
@@ -98,26 +102,33 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_url = vod_request['protection']['licenceAcquisitionUrl']
         manifest_url = vod_request['asset']['endpoints'][0]['url']
         pssh = get_pssh(manifest_url)
-        response = requests.post(url=license_url, headers=headers, data=challenge, proxies=proxy)
+        response = session.post(url=license_url, headers=headers, data=challenge, proxies=proxy)
     elif service_name == "udemy":
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "virgintv":
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     elif service_name == "directtv":
         data["licenseChallenge"] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
     elif service_name == "canal":
         data["ServiceRequest"]["InData"]["ChallengeInfo"] = challenge_b64
-        response = requests.post(url=lic_url, headers=headers, json=data, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
     elif service_name == "paralelo":
         data = paralelo.get_data().get('query')
-        response = requests.post(url=lic_url, headers=headers, json={'query': data}, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, json={'query': data}, proxies=proxy)
     elif service_name == "channel5":
-        response = requests.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge, proxies=proxy)
     elif service_name == "vtmgo":
-        response = requests.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, data=challenge, proxies=proxy)
+    elif service_name == "videotron":
+        data_dict = json.loads(data)
+        # data_dict['licenseRequest'] = challenge_b64
+        logging.debug(f"Data loaded as JSON: {data_dict}")
+        json_data = json.dumps(data_dict)
+        response = session.post(url=lic_url, headers=headers, data=json_data, proxies=proxy)
+        print(response.content)
     else:
-        response = requests.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge, proxies=proxy)
     
     if response.status_code != 200:
         logging.error(f"Failed to retrieve license: {response.text}")
@@ -150,7 +161,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["data"]["drm_license"]["license"]
     elif service_name == "channel5":
         license_b64 = b64encode(response.content).decode()
-    elif service_name == "vtmgo":
+    elif service_name in ["vtmgo", "videotron"]:
         license_b64 = response.json()["license"]
     else:
         logging.error(f"Service '{service_name}' is not handled.")

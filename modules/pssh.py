@@ -35,26 +35,21 @@ def fetch_manifest(url, proxy=None):
 def extract_kid_and_pssh_from_mpd(manifest):
     try:
         # Define regex patterns to find the default_KID and PSSH data within the ContentProtection elements
-        kid_pattern = re.compile(
-            r'<ContentProtection\s+schemeIdUri="urn:mpeg:dash:mp4protection:2011".*?cenc:default_KID="(.*?)"',
-            re.DOTALL
-        )
-        pssh_pattern = re.compile(
-            r'<ContentProtection\s+schemeIdUri="urn:uuid:(?:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed|EDEF8BA9-79D6-4ACE-A3C8-27DCD51D21ED)".*?<cenc:pssh.*?>(.*?)</cenc:pssh>',
-            re.DOTALL
-        )
+        kid_pattern = re.compile(r'<ContentProtection\s+.*?cenc:default_KID="(.*?)".*?>', re.DOTALL)
+        pssh_pattern = re.compile(r'<ContentProtection\s+.*?urn:uuid:(?:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed|EDEF8BA9-79D6-4ACE-A3C8-27DCD51D21ED)".*?<cenc:pssh.*?>(.*?)</cenc:pssh>', re.DOTALL)
         
         kid_matches = kid_pattern.findall(manifest)
         pssh_matches = pssh_pattern.findall(manifest)
 
         if kid_matches and pssh_matches:
-            # Returning the first KID and PSSH pair for simplicity
-            return kid_matches[0], pssh_matches[0]
+            logging.info(f"{Fore.YELLOW}KID: {Fore.RED}{kid_matches}")
+            print(Fore.MAGENTA + "=============================================================================================================")
+            return pssh_matches[0]
 
-        logging.warning("No KID or PSSH data found in MPD manifest.")
+        print("No KID or PSSH data found in MPD manifest.")
         return None, None
     except Exception as e:
-        logging.error(f"Error extracting KID and PSSH from MPD manifest: {e}")
+        print(f"Error extracting KID and PSSH from MPD manifest: {e}")
         raise
 
 def get_pssh(url, proxy=None):

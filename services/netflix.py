@@ -5,10 +5,9 @@ import json
 import time
 import os
 import re
-import binascii
+
 from colorama import Fore
 # from pywidevine import license_protocol_pb2
-from modules.downloader import reencode_video_to_hd
 from modules import license_protocol_pb2 as wvproto
 from modules.converter import Converter
 from modules.device import Device, CDMSession, EncryptionKey
@@ -27,46 +26,43 @@ from datetime import datetime
 from hyper.contrib import HTTP20Adapter
 from modules.config import load_configurations
 from modules.logging import setup_logging
-from modules.utils import read_data,pretty_size,get_profiles,shakti_headers,get_android_esn,metadata_endpoint,default_file_name,supported_video_profiles,supported_audio_profiles,lang_codes
+from modules.utils import read_data,pretty_size,get_profiles,shakti_headers,get_android_esn,manifest_esn,metadata_endpoint,default_file_name,supported_video_profiles,supported_audio_profiles,lang_codes
 from modules.errors import Denied,GeoError,InvalidLanguage,LoginError,DecryptionError,InvalidProfile,MSLClientError,NetflixStatusError
 
 config = load_configurations()
 logging = setup_logging()
 
-def get_current_directory():
-    current_directory = os.getcwd()
-    return current_directory
-
 EMAIL = config["NETFLIX"]["EMAIL"]
 PASSWORD = config["NETFLIX"]["PASSWORD"]
+DEVICE = config["NETFLIX"]["DEVICE"]
+QUALITY = config["NETFLIX"]["QUALITY"]
+AUDIO_LANGUAGE = config["NETFLIX"]["AUDIO_LANGUAGE"]
+VIDEO_PROFILE = config["NETFLIX"]["VIDEO_PROFILE"]
+QUIET = config["NETFLIX"]["QUIET"]
 
 class NetflixClient:
-    def __init__(self, email: str, password: str, device: str, cookies_file: str="cookies/netflix.txt",
-                 download_path: str="content", audio_profile: str="aac", video_profile: str="high",
-                 quality: int=1080, language: str="en-US", audio_language: list=["English"],
-                 audio_description_language: list=[], subtitle_language: list=[], forced_language: list=[],
-                 proxies: dict={}, keep: bool=False, decryption_method: str="shaka", decrypt_executable: str="shaka",
-                 verbose: bool=False, quiet: bool=False):
-        self.email = email
-        self.password = password
-        self.device = device
-        self.cookies_file = cookies_file
-        self.download_path = download_path
-        self.audio_profile = audio_profile
-        self.video_profile = video_profile
-        self.quality = quality
-        self.language = language
-        self.audio_language = audio_language
-        self.audio_description_language = audio_description_language
-        self.subtitle_language = subtitle_language
-        self.forced_language = forced_language
-        self.proxies = proxies
-        self.keep = keep
-        self.decryption_method = decryption_method
-        self.decrypt_executable = decrypt_executable
-        self.verbose = verbose
-        self.quiet = quiet
-        
+    def __init__(
+        self,
+        email: str,
+        password: str,
+        device: str,
+        cookies_file: str="cookies/netflix.txt",
+        download_path: str="content",
+        audio_profile: str="aac",
+        video_profile: str="high",
+        quality: int=720,
+        language: str="it-IT",
+        audio_language: list = ["English"],
+        audio_description_language: list = [],
+        subtitle_language: list = [],
+        forced_language: list = [],
+        proxies: dict = {},
+        keep: bool = False,
+        decryption_method: str = "shaka",
+        decrypt_executable: str = "shaka",
+        verbose: bool = False,
+        quiet: bool = False
+    ):
         if video_profile.lower() not in map(lambda x: x.lower(),
                 supported_video_profiles.keys()):
             raise InvalidProfile(f"Invalid video profile: {video_profile}")
@@ -110,7 +106,7 @@ class NetflixClient:
 
     def log(self, *args):
         if not self.quiet:
-            logging.debug(*args)
+            logging.info(*args)
 
     def _verbose_file(self, content, name=""):
         if not self.verbose:
@@ -127,18 +123,15 @@ class NetflixClient:
             pass
         with open(final, "w+", encoding="utf-8") as file:
             file.write(content)
-        logging.debug(f"Verbose saved in {final}")
+        logging.info(f"Verbose saved in {final}")
 
     def _verbose(self, *args):
         if self.verbose:
-            logging.debug(*args)
+            logging.info(*args)
 
     def get_metadata(self, netflix_id) -> dict:
         build_id = self.cookies["build_id"]
-        r = requests.get(
-            metadata_endpoint.format(build_id),
-            headers=shakti_headers(build_id),
-            cookies=self.cookies,
+        r = requests.get(metadata_endpoint.format(build_id), headers=shakti_headers(build_id), cookies=self.cookies,
             params = {
                 "movieid": str(netflix_id),
                 "drmSystem": "widevine",
@@ -176,7 +169,6 @@ class NetflixClient:
         license_b64 = data["result"][0]["licenseResponseBase64"]
         wvdecrypt.update_license(license_b64)
         keyswvdecrypt = wvdecrypt.start_process()[1]
-        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}- {Fore.WHITE}Keys: {Fore.RED}{keyswvdecrypt}")
         return keyswvdecrypt
 
     def get_viewables(self, any_id, episode="all", season=1) -> List[Any]:
@@ -306,99 +298,78 @@ class Viewable:
     async def download(self, output=default_file_name) -> str:
         self.client._verbose(f"Proxy map: {self.client.proxies}")
         output_folder = f"content/{self.vid}"
-        muxed_filename = os.path.join(self.client.download_path, output)
+        muxed_filename = f"{self.client.download_path}/{output}"
         playlist = Parse(self.client.msl.load_playlist(self.vid), self.client)
         keys = self.client.get_keys(self.vid)
 
         video_stream = playlist.video_streams[0]
-        encrypted_filename = os.path.join(
-            output_folder, 
-            f"video[{self.vid}][{video_stream['h']}p][{self.client.video_profile.upper()}]"
-        )
+        encrypted_filename = "".join([
+            f"{output_folder}/",
+            f"video[{self.vid}]",
+            f"[{video_stream['h']}p]",
+            f"[{self.client.video_profile.upper()}]"
+        ])
         decrypted_filename = f"{encrypted_filename}_[Decrypted].mp4"
 
-        os.makedirs(output_folder, exist_ok=True)
-
-        if not os.path.exists(encrypted_filename) and not os.path.exists(decrypted_filename):
-            logging.info(
-                f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading, please be patient {Fore.RED}| "
-                f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename} {Fore.RED}| "
-                f"{Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(video_stream['size'])}){Fore.RESET}"
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        if not os.path.exists(encrypted_filename) and \
+        not os.path.exists(decrypted_filename):
+            logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading, please be patient {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename} {Fore.RED}| {Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(video_stream['size'])}){Fore.RESET}")
+            await self.client._aria2c(
+                video_stream["url"],
+                encrypted_filename
             )
-            await self.client._aria2c(video_stream["url"], encrypted_filename)
-
         if not os.path.exists(decrypted_filename):
-            logging.info(
-                f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Decrypting {Fore.RED}| "
-                f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename}{Fore.RESET}"
-            )
-            await self.client._decrypt(encrypted_filename, decrypted_filename, keys)
-
+            logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Decrypting {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{encrypted_filename}{Fore.RESET}")
+            await self.client._decrypt(encrypted_filename,decrypted_filename, keys)
         await self.client._remux(decrypted_filename)
-        await self.download_audio_tracks(output_folder, playlist)
-        await self.download_subtitle_tracks(output_folder, playlist)
 
-        logging.info(
-            f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxing all tracks {Fore.RED}| "
-            f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{muxed_filename}{Fore.RESET}"
-        )
-        muxer = Muxer(output_folder, muxed_filename, self.client.verbose, self.client.keep)
-        final_name = await self.finalize_filename(muxer, muxed_filename)
-
-        logging.info(
-            f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxed successfully {Fore.RED}| "
-            f"{Fore.GREEN}Filename: {Fore.MAGENTA}{final_name} {Fore.RED}| "
-            f"{Fore.WHITE}Size: ({pretty_size(os.path.getsize(final_name))}){Fore.RESET}\n"
-        )
-
-        temp_dir = "content/"
-        reencoded_file = os.path.join(temp_dir, f"{self.vid}_hd.mp4")
-        reencode_video_to_hd(final_name, reencoded_file)
-        
-        return reencoded_file
-
-    async def download_audio_tracks(self, output_folder, playlist):
-        for language in list(playlist.audio_streams.keys()) + list(playlist.audio_description_streams.keys()):
-            language_track = playlist.audio_streams.get(language, playlist.audio_description_streams.get(language))
+        for language in list(playlist.audio_streams.keys()) + \
+        list(playlist.audio_description_streams.keys()):
+            language_track = playlist.audio_streams.get(language,
+                playlist.audio_description_streams.get(language))
             if not language_track:
                 continue
             audio_stream = language_track[0]
-            audio_filename = os.path.join(
-                output_folder,
-                f"audio[{self.vid}][{audio_stream['language']}][{audio_stream['language_code']}][{self.client.audio_profile.upper()}]"
-            )
+            audio_filename = "".join([
+                f"{output_folder}/",
+                f"audio[{self.vid}]",
+                f"[{audio_stream['language']}]",
+                f"[{audio_stream['language_code']}]",
+                f"[{self.client.audio_profile.upper()}]"
+            ])
             if not os.path.exists(audio_filename):
-                logging.info(
-                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}| "
-                    f"{Fore.YELLOW}Filename: {Fore.MAGENTA}{audio_filename} {Fore.RED}| "
-                    f"{Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(audio_stream['size'])}){Fore.RESET}"
+                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{audio_filename} {Fore.RED}| {Fore.YELLOW}Size: {Fore.MAGENTA}({pretty_size(audio_stream['size'])}){Fore.RESET}")
+                await self.client._aria2c(
+                    audio_stream["url"],
+                    audio_filename
                 )
-                await self.client._aria2c(audio_stream["url"], audio_filename)
-                await self.client._demux_audio(audio_filename, f"{audio_filename}.{self.client.audio_profile.lower()}")
-
-    async def download_subtitle_tracks(self, output_folder, playlist):
-        for language in list(playlist.subtitle_streams.keys()) + list(playlist.forced_streams.keys()):
-            language_track = playlist.subtitle_streams.get(language, playlist.forced_streams.get(language))
+                await self.client._demux_audio(audio_filename, 
+                    f"{audio_filename}.{self.client.audio_profile.lower()}")
+        for language in list(playlist.subtitle_streams.keys()) + \
+        list(playlist.forced_streams.keys()):
+            language_track = playlist.subtitle_streams.get(language,
+                playlist.forced_streams.get(language))
             if not language_track:
                 continue
             subtitles = language_track[0]
-            subtitles_filename = os.path.join(
-                output_folder,
-                f"subtitles[{self.vid}][{subtitles['language']}][{subtitles['language_code']}].vtt"
-            )
+            subtitles_filename = "".join([
+                f"{output_folder}/",
+                f"subtitles[{self.vid}]",
+                f"[{subtitles['language']}]",
+                f"[{subtitles['language_code']}].vtt",
+            ])
             if not os.path.exists(subtitles_filename):
-                logging.info(
-                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}- {subtitles_filename}{Fore.RESET}\n"
-                )
+                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Downloading {Fore.RED}- {subtitles_filename}{Fore.RESET}\n")
                 await self.client._aria2c(subtitles["url"], subtitles_filename)
-                logging.info(
-                    f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Converting {subtitles_filename} to SRT... {Fore.RED}- {subtitles_filename}{Fore.RESET}\n"
-                )
+                logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Converting {subtitles_filename}to SRT... {Fore.RED}- {subtitles_filename}{Fore.RESET}\n")
                 Converter(subtitles_filename).to_srt()
                 if not self.client.keep:
                     os.remove(subtitles_filename)
-
-    async def finalize_filename(self, muxer, muxed_filename):
+        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxing all tracks {Fore.RED}| {Fore.YELLOW}Filename: {Fore.MAGENTA}{muxed_filename}{Fore.RESET}")
+        muxer = Muxer(output_folder, muxed_filename, self.client.verbose, self.client.keep)
+        final_name = muxed_filename
         file_data = await muxer.run()
 
         file_data["title"] = self.title
@@ -410,20 +381,19 @@ class Viewable:
         file_data["fseason"] = f"S{str(self.season).zfill(2)}" if self.season else ""
         file_data["fepisode"] = f"E{str(self.episode).zfill(2)}" if self.episode else ""
 
-        final_name = muxed_filename
         for k, v in file_data.items():
             if isinstance(v, list):
                 v = ".".join(list(map(str, list(dict.fromkeys(v)))))
             final_name = final_name.replace(f"${k}$", str(v)).replace("..", ".")
 
-        if not final_name.endswith(".mp4"):
-            final_name += ".mp4"
+        if not final_name.endswith(".mkv"):
+            final_name += ".mkv"
 
         if final_name != muxed_filename:
             if os.path.exists(final_name):
                 os.remove(final_name)
             os.rename(muxed_filename, final_name)
-        
+        logging.info(f"{Fore.YELLOW}[Widevine-KSKEY] {Fore.RED}| {Fore.GREEN}Muxed successful {Fore.RED}| {Fore.GREEN}Filename: {Fore.MAGENTA}{final_name} {Fore.RED}| {Fore.WHITE}Size: ({pretty_size(os.path.getsize(final_name))}){Fore.RESET}\n")
         return final_name
     
 class MSLClient:
@@ -434,8 +404,8 @@ class MSLClient:
         self.session.mount("https://", HTTP20Adapter())
         if self.config.proxies:
             self.session.proxies.update(self.config.proxies)
-        self.msl_url = "https://www.netflix.com/nq/msl_v1/cadmium/pbo_licenses/^1.0.0/router"
-        self.esn = get_android_esn(config.quality)
+        self.msl_url = "https://www.netflix.com/nq/msl_v1/cadmium/pbo_licenses/%5E1.0.0/router"
+        self.esn = get_android_esn(QUALITY)
         self.email = config.email
         self.password = config.password
         self.device = config.device
@@ -502,8 +472,7 @@ class MSLClient:
                 json.dumps(headerdata).encode("utf8")
             ).decode("utf8"),
 		}
-        r = self.session.post(self.msl_url, json=request,
-            params={"reqName": "manifest"})
+        r = self.session.post(self.msl_url, json=request, params={"reqName": "manifest"})
         handshake = self.parse_handshake(response=r.json())
         return handshake
         
@@ -512,6 +481,7 @@ class MSLClient:
             None, self.device,
             b"\x0A\x7A\x00\x6C\x38\x2B", True
         )
+        print(self.cdm_session)
         wv_request = base64.b64encode(
             self.cdm.get_license_request(self.cdm_session)
         ).decode("utf-8")
@@ -672,62 +642,136 @@ class MSLClient:
             decrypted_payload = "".join(chunks)
             return json.loads(decrypted_payload)
                 
-    def load_playlist(self, viewable_id, ignore=[]):
+    def load_playlist(self, viewable_id, ignore=None):
+        if ignore is None:
+            ignore = []
+
         profiles = self.profiles.copy()
+        print("Initial profiles:", profiles)
+
         for i in ignore:
-            if i not in profiles:
-                continue
-            profiles.remove(i)
+            if i in profiles:
+                profiles.remove(i)
+        print("Filtered profiles:", profiles)
+
         payload = {
-			"version": 2,
-			"url": "/manifest",
-			"id": int(time.time()),
-			"languages": self.languages,
-			"params": {
-				"type": "standard",
-				"viewableId": viewable_id,
-				"profiles": profiles,
-				"flavor": "STANDARD",
-				"drmType": "widevine",
-				"usePsshBox": True,
-				"useHttpsStreams": True,
-				"supportsPreReleasePin": True,
-				"supportsWatermark": True,	
-				"supportsUnequalizedDownloadables": True,
-				"requestEligibleABTests": True,											
-				"isBranching": False,
-				"isNonMember": False,
-				"isUIAutoPlay": False,				
-				"imageSubtitleHeight": 1080,
-				"uiVersion": "shakti-ve3688f5d",
-				"uiPlatform": "SHAKTI",
-				"clientVersion": "6.0034.295.911",
-				"desiredVmaf": "plus_lts",
-				"showAllSubDubTracks": True,				
-				"preferAssistiveAudio": False,
-				"deviceSecurityLevel": "3000",
-				"licenseType": "standard",
-				"titleSpecificData": {str(viewable_id): {"unletterboxed": True}},				
-				"videoOutputInfo": [{
-					"type": "DigitalVideoOutputDescriptor",
-					"outputType": "unknown",
-					"supportedHdcpVersions": ["2.2"],
-					"isHdcpEngaged": True,
+            "version": 2,
+            "url": "manifest",
+            "id": int(time.time()),
+            "languages": ["my-MY"],
+            "params": {
+                "type": "standard",
+                "manifestVersion": "v2",
+                "viewableId": viewable_id,
+                "profiles": profiles,
+                "flavor": "standard",
+                "drmType": "widevine",
+                "drmVersion": 0,
+                "usePsshBox": True,
+                "useHttpsStreams": True,
+                "supportsPreReleasePin": True,
+                "supportsWatermark": True,
+                "supportsUnequalizedDownloadables": True,
+                "requestEligibleABTests": True,
+                "isBranching": False,
+                "isNonMember": False,
+                "isUIAutoPlay": False,
+                "imageSubtitleHeight": 720,
+                "uiVersion": "shakti-v92cfcaaa",
+                "uiPlatform": "SHAKTI",
+                "clientVersion": "6.0045.571.911",
+                "platform": "127.0.0.0",
+                "osVersion": "10.0",
+                "osName": "windows",
+                "desiredVmaf": "plus_lts",
+                "showAllSubDubTracks": True,
+                "preferAssistiveAudio": False,
+                "deviceSecurityLevel": "3000",
+                "licenseType": "standard",
+                "titleSpecificData": {str(viewable_id): {"unletterboxed": True}},
+                "videoOutputInfo": [{
+                    "type": "DigitalVideoOutputDescriptor",
+                    "outputType": "unknown",
+                    "supportedHdcpVersions": ["2.2"],
+                    "isHdcpEngaged": True,
                 }]
-			}
-		}
+            }
+        }
         
-        request_data = self.msl_request(payload)
-        response = self.session.post(self.msl_url, data=request_data,  params={"reqName": "manifest"})
-        manifest = json.loads(json.dumps(self.decrypt_response(response.text)))
-        self.config._verbose_file(manifest, "manifest")
-        if error := manifest.get("errormsg", manifest.get("error")):
-            if manifest.get("errorcode") == 7:
-                raise LoginError(manifest.get("error", {}).get("display", error))
-            raise MSLClientError(manifest.get("error", {}).get("display", error))
-        if result := manifest.get("result"):
-            self.license_path = result["links"]["license"]["href"]
-            return manifest
+        # Print payload for debugging
+        print("Payload:", json.dumps(payload, indent=2))
+        
+        try:
+            request_data = self.msl_request(payload)
+            print("Request data:", request_data)
+            
+            # Send the request
+            cookies = {
+            'nfvdid': 'BQFmAAEBEO0P9Of-baB5Orb9r3fK8zJgR0INqZCZ-g-BpCVDkqpPtUcsPbZZb2Iakqn-RC0HCpKyS69LwkpsQf8LueRhO-YCxX4feGFexm9_SssxEo3wmysSRbhBd9CAwiJ1TWsMC0nkxuozO8hxIEjBecGFVA9X',
+            'flwssn': '48f1272a-04aa-431a-b81a-0c6b19278779',
+            'profilesNewSession': '0',
+            'SecureNetflixId': 'v%3D3%26mac%3DAQEAEQABABTqRehyZv_n1rLUodMpi7EWV8WsLNXgGrI.%26dt%3D1721977243963',
+            'NetflixId': 'v%3D3%26ct%3DBgjHlOvcAxLsAmIyi4GgPLbHIiWOWjKE7Gh1_TPVJIkSylAK9fkZaqNVW2GgV9pWb38YbieObyJ5OuDC-z0uhbgRv7dMe_iboGLGq3d11zl03EVk-LKfjTPqT2SIybvZOgxgWarNM_mVvp9aESQZtDTiQ1-Cwds8ayiOcpJPvXCdkja8rzuO7-fnb35UjhvWkC4e9yzmJzPvYp75PQt0YOS60N1zhXUu6p9PzLFFEIw9TNDPmC-RL9uuVbn7qRqOVjxYzIP0m2MMoVKfgh3HAfnzP4oRDTBBifur9bUoqj0o2VXoVLVkh-NM1IVv-zTTRnl0GBhlkYGRZIeTOaTTbfnLcpKVCKsoW3TMGJqkzOUg5DKUL5a2jXUXLueOgzu61JOJ5nAzbG94PrxO4Hu24h6TuQ3X3CihUDAddKsdp1Q2ecOs6AUeK8JkXtfa6T6js0e63Zh6xUsbMv0cluqLaLY7_T-0njk53uOr5j_qzLHghrcZDI4YBiIOCgxnUgpDjy_L35Fmxt4.%26ch%3DAQEAEAABABTgnj9qpkN-KmSEQn85zAS3FX3lykQcOiw.',
+            'OptanonConsent': 'isGpcEnabled=0&datestamp=Fri+Jul+26+2024+15%3A06%3A08+GMT%2B0800+(Malaysia+Time)&version=202406.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=ad873cbc-84bb-4606-b4d6-f4aacefb3947&interactionCount=1&isAnonUser=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false',
+            }
+
+            headers = {
+                'accept': '*/*',
+                'accept-language': 'en-US,en;q=0.9,ms;q=0.8',
+                'content-type': 'text/plain',
+                # 'cookie': 'nfvdid=BQFmAAEBEO0P9Of-baB5Orb9r3fK8zJgR0INqZCZ-g-BpCVDkqpPtUcsPbZZb2Iakqn-RC0HCpKyS69LwkpsQf8LueRhO-YCxX4feGFexm9_SssxEo3wmysSRbhBd9CAwiJ1TWsMC0nkxuozO8hxIEjBecGFVA9X; flwssn=48f1272a-04aa-431a-b81a-0c6b19278779; profilesNewSession=0; SecureNetflixId=v%3D3%26mac%3DAQEAEQABABTqRehyZv_n1rLUodMpi7EWV8WsLNXgGrI.%26dt%3D1721977243963; NetflixId=v%3D3%26ct%3DBgjHlOvcAxLsAmIyi4GgPLbHIiWOWjKE7Gh1_TPVJIkSylAK9fkZaqNVW2GgV9pWb38YbieObyJ5OuDC-z0uhbgRv7dMe_iboGLGq3d11zl03EVk-LKfjTPqT2SIybvZOgxgWarNM_mVvp9aESQZtDTiQ1-Cwds8ayiOcpJPvXCdkja8rzuO7-fnb35UjhvWkC4e9yzmJzPvYp75PQt0YOS60N1zhXUu6p9PzLFFEIw9TNDPmC-RL9uuVbn7qRqOVjxYzIP0m2MMoVKfgh3HAfnzP4oRDTBBifur9bUoqj0o2VXoVLVkh-NM1IVv-zTTRnl0GBhlkYGRZIeTOaTTbfnLcpKVCKsoW3TMGJqkzOUg5DKUL5a2jXUXLueOgzu61JOJ5nAzbG94PrxO4Hu24h6TuQ3X3CihUDAddKsdp1Q2ecOs6AUeK8JkXtfa6T6js0e63Zh6xUsbMv0cluqLaLY7_T-0njk53uOr5j_qzLHghrcZDI4YBiIOCgxnUgpDjy_L35Fmxt4.%26ch%3DAQEAEAABABTgnj9qpkN-KmSEQn85zAS3FX3lykQcOiw.; OptanonConsent=isGpcEnabled=0&datestamp=Fri+Jul+26+2024+15%3A06%3A08+GMT%2B0800+(Malaysia+Time)&version=202406.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=ad873cbc-84bb-4606-b4d6-f4aacefb3947&interactionCount=1&isAnonUser=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false',
+                'dnt': '1',
+                'origin': 'https://www.netflix.com',
+                'priority': 'u=1, i',
+                'referer': 'https://www.netflix.com/browse/genre/34399?jbv=81773027',
+                'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-model': '""',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-ch-ua-platform-version': '"15.0.0"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+            }
+            response = self.session.post(
+                self.msl_url,
+                data=request_data,
+                cookies=cookies,
+                headers=headers,
+                params={
+                    'reqAttempt': '1',
+                    'reqName': 'manifest',
+                    'reqId': '',
+                    'clienttype': 'akira',
+                    'uiversion': 'v92cfcaaa',
+                    'browsername': 'chrome',
+                    'browserversion': '127.0.0.0',
+                    'osname': 'windows',
+                    'osversion': '10.0'
+                }
+            )
+            
+            # Print response for debugging
+            print("Response text:", response.text)
+            
+            # Decrypt and parse the response
+            decrypted_response = self.decrypt_response(response.text)
+            manifest = json.loads(json.dumps(decrypted_response))
+            self.config._verbose_file(manifest, "manifest")
+            
+            if error := manifest.get("errormsg", manifest.get("error")):
+                if manifest.get("errorcode") == 7:
+                    raise LoginError(manifest.get("error", {}).get("display", error))
+                raise MSLClientError(manifest.get("error", {}).get("display", error))
+            
+            if result := manifest.get("result"):
+                self.license_path = result["links"]["license"]["href"]
+                return manifest
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            raise
         
     def msl_request(self, data, is_handshake=False):
         header = self.msl_headers.copy()
@@ -983,7 +1027,7 @@ class WVDecrypt:
         return True
     
 async def download_netflix(content_id, output):
-    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=get_current_directory())
+    client = NetflixClient(email=f"{EMAIL}",password=f"{PASSWORD}",device=f"{DEVICE}",quality=int(QUALITY),audio_language=["English"],language="en-EN",video_profile=f"{VIDEO_PROFILE}",quiet=False,)
     loop = asyncio.get_event_loop()
     viewables = await loop.run_in_executor(None, client.get_viewables, content_id)
     for viewable in viewables:

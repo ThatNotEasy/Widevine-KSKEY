@@ -107,17 +107,14 @@ def display_tracks(tracks, track_type):
         elif track_type == "Subtitle":
             print(Fore.CYAN + f"ID: {track['id']} - Language: {track['language']}")
 
-def validate_keys(keys):
-    valid_keys = []
-    for key in keys:
-        try:
-            key = key.replace("--key ", "")
-            key_id, key_value = key.split(':')
-            valid_keys.append(f"{key_id.strip()}:{key_value.strip()}")
-        except ValueError:
-            logging.error("Key format error with key: %s", key)
-            continue
-    return valid_keys
+def validate_keys(key: str):
+    try:
+        key = key.replace("--key ", "")
+        key_id, key_value = key.split(':')
+        return f"{key_id.strip()}:{key_value.strip()}"
+    except ValueError:
+        logging.error("Key format error with key: %s", key)
+        return None
 
 def get_mp4_info(file_path):
     try:
@@ -165,44 +162,69 @@ def segment_video_for_dash(input_file, output_mpd):
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to segment video for DASH: {e}")
 
-def download_video(url, save_name, keys, output_format, save_video_quality, save_audio_quality):
-    temp_dir = "content"
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
 
-    lang = input(f"{Fore.GREEN}Subtitle Language {Fore.RED}(eg: EN): {Fore.WHITE}")
-    command = f'N_m3u8DL-RE "{url}" --save-dir {temp_dir} --save-name {save_name}'
-    for key in keys:
-        command += f' --key {key}'
-    command += f' -mt -M format={output_format}:muxer=ffmpeg -sv {save_video_quality} -sa {save_audio_quality} -ss {lang}'
+def drm_downloader(url: str, output_name: str, key: str):
+    """
+    Downloads DRM-protected content using N_m3u8DL-RE.
+
+    Parameters:
+    url (str): The URL of the mpd file.
+    output_name (str): The name of the output file.
+    key (str): The decryption key.
     
-    logging.info(f"{Fore.GREEN}Running command: {Fore.RED}{command}{Fore.RESET}")
-    logging.info(f"{Fore.MAGENTA}Please be patient ..{Fore.RESET}")
-
+    Returns:
+    None
+    """
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, encoding='utf-8', errors='replace')
-        stdout, stderr = process.communicate()
+        content_dir = "content"
+        os.makedirs(content_dir, exist_ok=True)
+        
+        # Prepare the command
+        cmd = (
+            f'N_m3u8DL-RE "{url}" --key "{key}" '
+            f'--save-dir "{content_dir}"  --save-name "{output_name}" '
+            f'-mt -sv "BEST" -sa "BEST" -M format=mp4 --del-after-done'
+        )
+        
+        logging.info(f"Starting download: {url}")
+        # logging.debug(f"Command: {cmd}")
+        
+        # Execute the command
+        result = os.system(cmd)
+        
+        if result == 0:
+            logging.info(f"Download completed successfully. Files saved to: {content_dir}")
+            input_file = os.path.join(content_dir, output_name + ".mp4")
+            output_file = os.path.join(content_dir, output_name + "_60fps.mp4")
+            change_frame_rate(input_file, output_file, 60)
+        else:
+            logging.error(f"Download failed with return code {result}")
 
-        if stdout:
-            print(stdout)
-        if stderr:
-            print(stderr)
-
-        if process.returncode != 0:
-            logging.error(f"Command failed with exit code {process.returncode}")
-            raise subprocess.CalledProcessError(process.returncode, command)
-
-        logging.info(f"{Fore.GREEN}Download completed successfully.")
-        return True
-    except subprocess.CalledProcessError as e:
-        logging.error(f"{Fore.RED}Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
-        return False
-    except FileNotFoundError:
-        logging.error(f"{Fore.RED}m3u8dl.exe not found. Make sure it is installed and in the system PATH.")
-        return False
     except Exception as e:
-        logging.error(f"{Fore.RED}An error occurred: {e}")
-        return False
+        logging.error(f"An error occurred: {str(e)}")
+
+
+def change_frame_rate(input_file, output_file, frame_rate=60):
+    """
+    Changes the frame rate of a video using FFmpeg.
+
+    Parameters:
+    input_file (str): The path to the input video file.
+    output_file (str): The path to the output video file.
+    frame_rate (int): The desired frame rate (default is 60).
+    """
+    try:
+        cmd = f'ffmpeg -i "{input_file}" -r {frame_rate} -fps_mode vfr -vf fps={frame_rate} "{output_file}"'
+        logging.info(f"Running command: {cmd}")
+        result = os.system(cmd)
+
+        if result == 0:
+            logging.info(f"Frame rate changed successfully. Output saved to: {output_file}")
+        else:
+            logging.error(f"Error: Command failed with exit code {result}")
+    
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
 
 def post_process_video(save_name, temp_dir):
     mp4_file_path = os.path.join(temp_dir, f"{save_name}.mp4")
@@ -217,30 +239,6 @@ def post_process_video(save_name, temp_dir):
     encrypted_file_path = os.path.join(temp_dir, f"{save_name}.encrypted")
     if os.path.exists(encrypted_file_path):
         os.remove(encrypted_file_path)
-
-def drm_downloader(url, save_name, keys, output_format='mkv', save_video_quality='best', save_audio_quality='best'):
-    valid_formats = ['mp4', 'ts', 'flv', 'mkv']
-    if output_format not in valid_formats:
-        raise ValueError(f"Invalid output_format '{output_format}'. Valid formats are: {', '.join(valid_formats)}")
-    
-    if not all(isinstance(param, str) and param for param in [url, save_name, output_format, save_video_quality, save_audio_quality]):
-        raise ValueError("URL, save_name, output_format, save_video_quality, and save_audio_quality must all be non-empty strings")
-    if not keys or not all(isinstance(key, str) and ':' in key for key in keys):
-        raise ValueError("Keys must be a non-empty list of strings in the format 'key_id:key_value'")
-
-    init(autoreset=True)
-    mpd_content = fetch_mpd(url)
-    video_tracks, audio_tracks, subtitle_tracks = parse_mpd(mpd_content)
-
-    display_tracks(video_tracks, "Video")
-    display_tracks(audio_tracks, "Audio")
-    display_tracks(subtitle_tracks, "Subtitle")
-
-    temp_dir = "content"
-    if download_video(url, save_name, keys, output_format, save_video_quality, save_audio_quality):
-        # post_process_video(save_name, temp_dir)
-        return True
-    return False
 
 def get_random_folder(base_dir='content'):
     """Generate a random folder name inside the base_dir and create it."""

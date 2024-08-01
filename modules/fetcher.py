@@ -24,7 +24,7 @@ class NetflixItem:
 
     def fetch(self):
         try:
-            url = f"https://www.netflix.com/title/{self.netflix_id}"
+            url = f"https://www.netflix.com/it-it/title/{self.netflix_id}"
             response = requests.get(url)
             print(response.text)
             soup = BeautifulSoup(response.content, "html.parser")

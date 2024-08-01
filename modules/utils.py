@@ -65,57 +65,65 @@ def random_hex(length: int) -> str:
 def pretty_size(size: int) -> str:
     return f"{size/float(1<<20):,.0f}MiB"
 
+manifest_esn = f"NFCDCH-02-{random_hex(30)}" # NFCDCH-02-L8Z2W1GRV6VKDKV3FP2EL9M6QVQYUT
 
-manifest_esn = f"NFCDIE-03-{random_hex(30)}"
 def get_android_esn(quality: int) -> str:
+    """Generate an ESN based on video quality."""
+    # Ensure quality is an integer
+    try:
+        quality = int(quality)
+    except ValueError:
+        raise ValueError("Quality should be an integer")
+
     if quality >= 2160:
         device_id = 2  # 4K quality
     elif quality >= 1080:
         device_id = 1  # Full HD quality
+    elif quality >= 720:
+        device_id = 3  # HD quality
+    elif quality >= 540:
+        device_id = 4  # qHD quality
     else:
         device_id = 0  # Standard quality
-    return f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}" # NFCDCH-02-L6JNYW0LWGPUCQVQ23JMWQW95UH1J1
+    
+    # Generate the ESN with a random 30-character hex string
+    esn = f"NFANDROID{device_id}-PRV-P-SAMSUSM-G950F-7169-{random_hex(30)}"
+    
+    return esn
 
 
 def shakti_headers(build_id):
     return {
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.9,ms;q=0.8',
-        'cache-control': 'no-cache',
-        'content-type': 'application/x-www-form-urlencoded',
-        # 'cookie': 'nfvdid=BQFmAAEBEO0P9Of-baB5Orb9r3fK8zJgR0INqZCZ-g-BpCVDkqpPtUcsPbZZb2Iakqn-RC0HCpKyS69LwkpsQf8LueRhO-YCxX4feGFexm9_SssxEo3wmysSRbhBd9CAwiJ1TWsMC0nkxuozO8hxIEjBecGFVA9X; flwssn=94e09c53-0493-4afb-8519-64ebe630480e; SecureNetflixId=v%3D3%26mac%3DAQEAEQABABRNGRQo9NNvDLWpGhQnmKFrKPtzg9zi4v4.%26dt%3D1720742390324; NetflixId=ct%3DBgjHlOvcAxLvAkMOL5MiJYYoxyB8ug0nHTitrlTEOFahRzzSvQhDR8xWrwSw7Rk5G1rxAWUA1t05x_6wumr2BdC4WfDruz2iG01l3n8OxL_ujD-BLc5bRUDv-FwotePryijVX4LLQmr_Tej0EBubkyqKGzVcVVgMqivRKlz_qCoeBcPg85Y-MfUQwkNjnVJ_RkZdI9OhgWftfLX8Na_hcxuW5hi27SUOozcdXIcVffm-BjiRZeYZfe_W2tGykdJx8PN_EzlUlyVsNCb33p5rlkBY6Ra7JAZy3slWsxpBCPMG5D2KKIV_41dmQSIDXAP9ziOPnMqawe2VS-CQ78FV1-vtCgX6WNDdgshhuCvf0dIvCoSzca_4fWTOX9XiZq-ElXLQXUMCjMBAemBHXTbNMcv6TZWl4ebEIHAvODzU_bTdMIwVbF9Kfgu2Mq9OstXoiy5wErqwcbnVaFjUIu0gajWgNxtOo53wDaPQbzq_vBqDl5G46Tp07tgYBiIOCgxlBJugchk05DEulWc.%26ch%3DAQEAEAABABTgnj9qpkN-KmSEQn85zAS3FX3lykQcOiw.%26v%3D3; OptanonConsent=isGpcEnabled=0&datestamp=Fri+Jul+12+2024+07%3A59%3A33+GMT%2B0800+(Malaysia+Time)&version=202406.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=ad873cbc-84bb-4606-b4d6-f4aacefb3947&interactionCount=1&isAnonUser=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&AwaitingReconsent=false; profilesNewSession=0',
-        'dnt': '1',
-        'origin': 'https://www.netflix.com',
-        'pragma': 'no-cache',
-        'priority': 'u=1, i',
-        'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-model': '""',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-ch-ua-platform-version': '"15.0.0"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'x-netflix.browsername': 'Chrome',
-        'x-netflix.browserversion': '126',
-        'x-netflix.client.request.name': 'ui/falcorUnclassified',
-        'x-netflix.clienttype': 'akira',
-        'x-netflix.esn': 'NFCDCH-02-L8Z2W1GRV6VKDKV3FP2EL9M6QVQYUT',
-        'x-netflix.esnprefix': 'NFCDCH-02-',
-        'x-netflix.nq.stack': 'prod',
-        'x-netflix.osfullname': 'Windows 10',
-        'x-netflix.osname': 'Windows',
-        'x-netflix.osversion': '10.0',
-        'x-netflix.request.client.user.guid': '7M7CH62HTNHJLHPSMAJAA5ZNU4',
-        'x-netflix.uiversion': 'v1665dea6',
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "es,ca;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Host": "www.netflix.com",
+        "Pragma": "no-cache",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+        "X-Netflix.browserName": "Firefox",
+        "X-Netflix.browserVersion": "123",
+        "X-Netflix.clientType": "akira",
+        "X-Netflix.Client.Request.Name": "ui/falcorUnclassified",
+        "X-Netflix.esnPrefix": "NFCDFF-02-",
+        "X-Netflix.osFullName": "Windows 10",
+        "x-netflix.nq.stack": "prod",
+        "X-Netflix.osName": "Windows",
+        "X-Netflix.osVersion": "10.0",
+        "X-Netflix.playerThroughput": "58194",
+        "X-Netflix.uiVersion": str(build_id),
+        "x-netflix.request.client.user.guid": str(uuid.uuid4()).replace("-", ""),
+        "X-Forwarded-For": "194.36.178.234"
     }
 
 def build_headers():
     return {
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-Mode": "navigate",
@@ -126,6 +134,7 @@ def build_headers():
 
 def get_build_id() -> str:
     r = requests.get("https://www.netflix.com/buildIdentifier")
+    print(r.text)
     if r.status_code != 200:
         print(f"{Fore.YELLOW}[Widevine-KSKEY] - {Fore.RED}Netflix didn't return 200!")
         raise Exception("Netflix didn't return 200")
@@ -195,11 +204,56 @@ lang_codes = {
 }
 
 supported_video_profiles = {
-    "high": ["playready-h264hpl{}-dash"],
-    "main": ["playready-h264mpl{}-dash"],
-    "baseline": ["playready-h264bpl{}-dash"],
-    "hevc": ["hevc-main10-L{}-dash-cenc", "hevc-main10-L{}-dash-cenc-prk"],
-    "hdr": ["hevc-hdr-main10-L{}-dash-cenc", "hevc-hdr-main10-L{}-dash-cenc-prk"]
+    "high": [
+        "playready-h264hpl{}-dash",
+        "playready-h264hpl30-dash",
+        "playready-h264hpl31-dash",
+        "playready-h264hpl40-dash",
+        "h264hpl30-dash-playready-live",
+        "h264hpl31-dash-playready-live",
+        "h264hpl40-dash-playready-live"
+    ],
+    "main": [
+        "playready-h264mpl{}-dash",
+        "playready-h264mpl30-dash",
+        "playready-h264mpl31-dash",
+        "playready-h264mpl40-dash"
+    ],
+    "baseline": [
+        "playready-h264bpl{}-dash"
+    ],
+    "hevc": [
+        "hevc-main10-L{}-dash-cenc",
+        "hevc-main10-L{}-dash-cenc-prk",
+        "av1-main-L30-dash-cbcs-prk",
+        "av1-main-L31-dash-cbcs-prk",
+        "av1-main-L40-dash-cbcs-prk",
+        "av1-main-L41-dash-cbcs-prk"
+    ],
+    "hdr": [
+        "hevc-hdr-main10-L{}-dash-cenc",
+        "hevc-hdr-main10-L{}-dash-cenc-prk"
+    ],
+    "audio": [
+        "heaac-2-dash",
+        "heaac-2hq-dash",
+        "xheaac-dash"
+    ],
+    "video": [
+        "vp9-profile0-L30-dash-cenc",
+        "vp9-profile0-L31-dash-cenc",
+        "vp9-profile0-L40-dash-cenc"
+    ],
+    "subtitles": [
+        "imsc1.1",
+        "dfxp-ls-sdh",
+        "simplesdh"
+    ],
+    "other": [
+        "nflx-cmisc",
+        "BIF240",
+        "BIF320"
+    ]
 }
 
 supported_audio_profiles = {
@@ -225,19 +279,27 @@ supported_audio_profiles = {
 
 def get_profiles(video_profile: str, audio_profile: str, quality: int):
     profiles = ["webvtt-lssdh-ios8"]
-    profile = supported_video_profiles.get(video_profile.lower())
+    
+    # Retrieve video profiles based on the input
+    video_profile_list = supported_video_profiles.get(video_profile.lower(), [])
+    
+    # Add video profiles based on quality
     if quality >= 2160:
-        profiles += list(map(lambda x: x.format(51), profile))
-        profiles += list(map(lambda x: x.format(50), profile))
+        profiles += [x.format(51) for x in video_profile_list]
+        profiles += [x.format(50) for x in video_profile_list]
     if quality >= 1080:
         if video_profile.lower() in ["hevc", "hdr"]:
-            profiles += list(map(lambda x: x.format(41), profile))
-        profiles += list(map(lambda x: x.format(40), profile))
+            profiles += [x.format(41) for x in video_profile_list]
+        profiles += [x.format(40) for x in video_profile_list]
     if quality >= 720:
-        profiles += list(map(lambda x: x.format(31), profile))
+        profiles += [x.format(31) for x in video_profile_list]
     if quality >= 480:
-        profiles += list(map(lambda x: x.format(30), profile))
-        if video_profile.lower not in ["hevc", "hdr"]:
-            profiles += list(map(lambda x: x.format(22), profile))
-    profiles += supported_audio_profiles.get(audio_profile.lower())
+        profiles += [x.format(30) for x in video_profile_list]
+        if video_profile.lower() not in ["hevc", "hdr"]:
+            profiles += [x.format(22) for x in video_profile_list]
+    
+    # Add audio profiles based on the input
+    audio_profiles = supported_audio_profiles.get(audio_profile.lower(), [])
+    profiles += audio_profiles
+    
     return profiles

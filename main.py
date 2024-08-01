@@ -1,20 +1,20 @@
 import sys
 import os
 import asyncio
-from colorama import init, Fore, Style
-from modules.downloader import drm_downloader, validate_keys, fetch_mpd, parse_mpd, display_tracks, yt_dlp_downloader
+from colorama import init, Fore
+import requests
+from modules.downloader import drm_downloader, validate_keys, fetch_mpd, yt_dlp_downloader, change_frame_rate
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
-from modules.pssh import get_pssh, amz_pssh, get_pssh_from_mpd, fetch_manifest_with_retry, fetch_m3u8, extract_pssh_from_m3u8
+from modules.pssh import amz_pssh, extract_pssh_from_m3u8, fetch_manifest, extract_kid_and_pssh_from_mpd
 from services.netflix import NetflixClient, download_netflix
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input
 from modules.license_retrieval import get_license_keys
 
 logging = setup_logging()
 config = load_configurations()
-
 
 def main():
     init(autoreset=True)
@@ -37,7 +37,6 @@ def handle_netflix(args):
         logging.error("Error: content_id is required for Netflix service.")
         sys.exit(1)
     asyncio.run(download_netflix(args.content_id, 'output'))
-
 
 def handle_other_services(args):
     proxy = setup_proxy(args)
@@ -69,13 +68,13 @@ def setup_proxy(args):
     return proxy
 
 def get_pssh_data(args, proxy):
-    # logging.debug(f"Using proxy: {proxy}")
     if args.service == "prime" and args.mpd_url:
         return amz_pssh(args.mpd_url, proxy)
     elif args.mpd_url:
         try:
-            manifest = fetch_manifest_with_retry(args.mpd_url, proxy)
-            return get_pssh(args.mpd_url, proxy)
+            manifest = fetch_manifest(args.mpd_url, proxy)
+            if manifest:
+                return extract_kid_and_pssh_from_mpd(manifest)
         except Exception as e:
             logging.error(f"An error occurred fetching PSSH data: {e}")
             return None
@@ -94,6 +93,7 @@ def proceed_with_download(args, keys, proxy):
         logging.info(f"Download options: {Fore.RED}[1] {Fore.GREEN}N3MU8DL (Recommended) {Fore.YELLOW}| {Fore.RED}[2] {Fore.GREEN}YT-DLP{Fore.RESET}")
         print(Fore.MAGENTA + "=============================================================================================================")
         choice = input("Enter your choice (1 or 2): ").strip()
+        print(Fore.MAGENTA + "=============================================================================================================")
 
         if choice == '1':
             save_name = colored_input("Enter the output name (WithoutExtension): ", Fore.CYAN).strip()
@@ -101,27 +101,32 @@ def proceed_with_download(args, keys, proxy):
                 logging.error("Invalid save name provided.")
                 return
 
-            mpd_content = fetch_mpd(args.mpd_url, proxy)
+            mpd_url = args.mpd_url
+            if not mpd_url:
+                mpd_url = input(f"{Fore.GREEN}Enter Manifest URL: {Fore.WHITE}{Fore.RESET}").strip()
+                if not mpd_url:
+                    logging.error("No manifest URL provided.")
+                    return
+
+            mpd_content = fetch_mpd(mpd_url, proxy)
             if not mpd_content:
                 logging.error("Failed to fetch MPD content.")
                 return
             
-            validated_keys = validate_keys(keys)
-            if validated_keys:
-                successful = drm_downloader(args.mpd_url, save_name, validated_keys, output_format='mkv')
-                if successful:
-                    logging.info("Content downloaded successfully.")
+            for key in keys:
+                validated_key = validate_keys(key)
+                if validated_key:
+                    drm_downloader(mpd_url, save_name, validated_key)
                 else:
-                    logging.error("Content download failed.")
-            else:
-                logging.error("No valid keys available to proceed with the download.")
+                    logging.error("Invalid key: %s", key)
         
         elif choice == '2':
-            video_info = yt_dlp_downloader(args.mpd_url, 2, 'best')
-            if 'error' in video_info:
-                logging.error("Failed to fetch video info: " + video_info['error'])
-            else:
-                print(video_info)
+            logging.info(f"{Fore.RED}Under Construction!")
+            # video_info = yt_dlp_downloader(args.mpd_url, 2, 'best')
+            # if 'error' in video_info:
+            #     logging.error("Failed to fetch video info: " + video_info['error'])
+            # else:
+            #     print(video_info)
 
 def confirm_user_proceed():
     init(autoreset=True)

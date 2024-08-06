@@ -1,15 +1,12 @@
 import sys
-import os
 import asyncio
 from colorama import init, Fore
-import requests
-from modules.downloader import drm_downloader, validate_keys, fetch_mpd, yt_dlp_downloader, change_frame_rate
+from modules.downloader import drm_downloader, validate_keys, fetch_mpd
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
 from modules.pssh import amz_pssh, extract_pssh_from_m3u8, fetch_manifest, extract_kid_and_pssh_from_mpd
-from services.netflix import NetflixClient, download_netflix
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input
 from modules.license_retrieval import get_license_keys
 
@@ -32,11 +29,11 @@ def main():
     else:
         handle_other_services(args)
 
-def handle_netflix(args):
-    if not args.content_id:
-        logging.error("Error: content_id is required for Netflix service.")
-        sys.exit(1)
-    asyncio.run(download_netflix(args.content_id, 'output'))
+# def handle_netflix(args):
+#     if not args.content_id:
+#         logging.error("Error: content_id is required for Netflix service.")
+#         sys.exit(1)
+#     asyncio.run(download_netflix(args.content_id, 'output'))
 
 def handle_other_services(args):
     proxy = setup_proxy(args)
@@ -116,7 +113,7 @@ def proceed_with_download(args, keys, proxy):
             for key in keys:
                 validated_key = validate_keys(key)
                 if validated_key:
-                    drm_downloader(mpd_url, save_name, validated_key)
+                    drm_downloader(mpd_url, save_name, validated_key, proxy)
                 else:
                     logging.error("Invalid key: %s", key)
         

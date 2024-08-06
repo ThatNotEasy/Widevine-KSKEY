@@ -163,7 +163,7 @@ def segment_video_for_dash(input_file, output_mpd):
         logging.error(f"Failed to segment video for DASH: {e}")
 
 
-def drm_downloader(url: str, output_name: str, key: str):
+def drm_downloader(url: str, output_name: str, key: str, proxy: str):
     """
     Downloads DRM-protected content using N_m3u8DL-RE.
 
@@ -178,10 +178,11 @@ def drm_downloader(url: str, output_name: str, key: str):
     try:
         content_dir = "content"
         os.makedirs(content_dir, exist_ok=True)
-        
+        headers = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
         # Prepare the command
         cmd = (
             f'N_m3u8DL-RE "{url}" --key "{key}" '
+            f'--header "{headers}" '
             f'--save-dir "{content_dir}"  --save-name "{output_name}" '
             f'-mt -sv "BEST" -sa "BEST" -M format=mp4 --del-after-done'
         )
@@ -194,9 +195,9 @@ def drm_downloader(url: str, output_name: str, key: str):
         
         if result == 0:
             logging.info(f"Download completed successfully. Files saved to: {content_dir}")
-            input_file = os.path.join(content_dir, output_name + ".mp4")
-            output_file = os.path.join(content_dir, output_name + "_60fps.mp4")
-            change_frame_rate(input_file, output_file, 60)
+            # input_file = os.path.join(content_dir, output_name + ".mp4")
+            # output_file = os.path.join(content_dir, output_name + "_60fps.mp4")
+            # change_frame_rate(input_file, output_file, 60)
         else:
             logging.error(f"Download failed with return code {result}")
 

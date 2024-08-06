@@ -137,6 +137,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = session.post(url=lic_url, headers=headers, cookies=cookies, data=challenge_bytes, proxies=proxy)
     elif service_name == "hotstar":
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
+    elif service_name == "itv":
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
     else:
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
     
@@ -171,12 +173,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
     elif service_name == "paralelo":
         license_b64 = response.json()["data"]["drm_license"]["license"]
-    elif service_name in ["todtv", "channel5", "hotstar"]:
+    elif service_name in ["todtv", "channel5", "hotstar", "amateurtv", "itv"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["vtmgo", "videotron"]:
         license_b64 = response.json()["license"]
-    elif service_name == "amateurtv":
-        license_b64 = b64encode(response.content).decode()
     else:
         logging.error(f"Service '{service_name}' is not handled.")
         return False, None

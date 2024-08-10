@@ -178,7 +178,7 @@ def drm_downloader(url: str, output_name: str, key: str, proxy: str):
     try:
         content_dir = "content"
         os.makedirs(content_dir, exist_ok=True)
-        headers = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+        headers = 'User-Agent: Dalvik/2.1.0 (Android 13)'
         # Prepare the command
         cmd = (
             f'N_m3u8DL-RE "{url}" --key "{key}" '

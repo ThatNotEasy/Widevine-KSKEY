@@ -17,6 +17,27 @@ logging = setup_logging()
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def parse_headers(header_list):
+    """
+    Convert a list of header strings into a dictionary.
+
+    Args:
+        header_list (list): List of headers in the format "Key: Value".
+
+    Returns:
+        dict: Dictionary of headers.
+    """
+    headers = {}
+    if header_list:
+        for header in header_list:
+            try:
+                key, value = header.split(":", 1)
+                headers[key.strip()] = value.strip()
+                # logging.info(f"Added header: {key.strip()} -> {value.strip()}")
+            except ValueError:
+                logging.warning(f"Skipping invalid header format: {header}. Ensure it is in the format 'Key: Value'.")
+    return headers
+
 def colored_input(prompt, color):
     print(color + prompt + Style.RESET_ALL, end='')
     return input()

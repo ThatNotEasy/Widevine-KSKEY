@@ -41,17 +41,18 @@ def fetch_manifest(url, proxy=None, headers=None):
     print(Fore.MAGENTA + "=============================================================================================================")
     
     # Define default headers
-    default_headers = {"Origin": url, "Referer": url}
+    default_headers = {"Origin": url, "Referer": url, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"}
     
     if headers:
         # Parse and merge user-provided headers
         parsed_headers = parse_headers(headers)
         default_headers.update(parsed_headers)
+        logging.info(f"{Fore.YELLOW}Headers: {Fore.RED}{parsed_headers}{Fore.RESET}")
     
     # Log and print headers
     # logging.info(f"Request headers: {default_headers}")
-    for key, value in default_headers.items():
-        logging.info(f"{Fore.YELLOW}Headers: {Fore.RED}{parsed_headers}{Fore.RESET}")
+    # for key, value in default_headers.items():
+    #     logging.info(f"{Fore.YELLOW}Headers: {Fore.RED}{parsed_headers}{Fore.RESET}")
     
     # Make the HTTP request
     response = requests.get(url, proxies=proxy, headers=default_headers)

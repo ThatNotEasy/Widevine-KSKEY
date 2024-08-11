@@ -69,10 +69,18 @@ def setup_proxy(args):
 
 def get_pssh_data(args, proxy):
     try:
+        # Initialize parsed_headers to None or an empty dictionary
+        parsed_headers = None
+
         if args.service == "prime" and args.mpd_url:
             return amz_pssh(args.mpd_url, proxy)
         elif args.mpd_url:
-            manifest = fetch_manifest(args.mpd_url, proxy, args.header)
+            # Parse headers only if args.header is provided
+            if args.header:
+                parsed_headers = parse_headers(args.header)
+
+            # Ensure parsed_headers is passed correctly even if None
+            manifest = fetch_manifest(args.mpd_url, proxy, parsed_headers)
             return extract_kid_and_pssh_from_mpd(manifest) if manifest else None
         elif args.pssh:
             return pssh_parser(args.pssh)

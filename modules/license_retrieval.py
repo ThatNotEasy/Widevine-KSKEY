@@ -61,6 +61,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     cdm = Cdm.from_device(device)
     session_id = cdm.open()
     challenge_bytes = cdm.get_license_challenge(session_id, PSSH(pssh))
+    # print(challenge_bytes)
     challenge_b64 = b64encode(challenge_bytes).decode('utf-8')
     # print(challenge_b64).add()
     
@@ -84,7 +85,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "apple":
         data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
         response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
-    elif service_name =="tonton":
+    elif service_name in ["sooka","tonton"]:
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge_bytes)
@@ -158,7 +159,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "youku":
         response_data_bytes = b64decode(response.json()["data"].encode('utf-8'))
         license_b64 = b64encode(response_data_bytes).decode()
-    elif service_name in ["mubi", "dazn", "vdocipher", "newsnow", "beinsports", "viaplay", "peacock"]:
+    elif service_name in ["sooka", "mubi", "dazn", "vdocipher", "newsnow", "beinsports", "viaplay", "peacock"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["music-amz", "crunchyroll"]:
         license_b64 = response.json()["license"]

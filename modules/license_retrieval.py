@@ -74,7 +74,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     if service_name == "prime":
         data['widevine2Challenge'] = challenge_b64
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
-        print(response.text)
     elif service_name in ["astro", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
         response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
@@ -95,7 +94,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy, verify=False)
     elif service_name == "flow":
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, cookies=cookies, proxies=proxy)
-        print(response.text)
     elif service_name == "skyshowtime":
         token_url = 'https://ovp.skyshowtime.com/auth/tokens'
         vod_url = 'https://ovp.skyshowtime.com/video/playouts/vod'
@@ -130,12 +128,11 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         logging.debug(f"Data loaded as JSON: {data_dict}")
         json_data = json.dumps(data_dict)
         response = session.post(url=lic_url, headers=headers, data=json_data, proxies=proxy)
-        print(response.content)
     elif service_name == "todtv":
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
     elif service_name == "amateurtv":
         response = session.post(url=lic_url, headers=headers, cookies=cookies, data=challenge_bytes, proxies=proxy)
-    elif service_name in ["hotstar", "mewatch"]:
+    elif service_name in ["exxen", "hotstar", "mewatch"]:
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
     elif service_name == "itv":
         response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
@@ -173,7 +170,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
     elif service_name == "paralelo":
         license_b64 = response.json()["data"]["drm_license"]["license"]
-    elif service_name in ["mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv"]:
+    elif service_name in ["exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["vtmgo", "videotron"]:
         license_b64 = response.json()["license"] 

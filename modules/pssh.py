@@ -28,7 +28,8 @@ logging = setup_logging()
 def fetch_manifest(url, proxy=None):
     logging.info(f"{Fore.YELLOW}Fetching manifest from URL: {Fore.RED}{url}{Fore.RESET}")
     print(Fore.MAGENTA + "=============================================================================================================")
-    response = requests.get(url, proxies=proxy)
+    headers = {"Origin": url, "Referer": url}
+    response = requests.get(url, proxies=proxy, headers=headers)
     response.raise_for_status()
     return response.text
 
@@ -119,6 +120,21 @@ def get_pssh_from_mpd(mpd_url, proxy=None):
         pssh = input('Unable to find PSSH in MPD. Edit getPSSH.py or enter PSSH manually: ')
     return pssh
 
+def pssh_parser(base64_pssh):
+    try:
+        hex_pssh = base64.b64decode(base64_pssh).hex()
+        match = re.search(r'000000[0-9a-fA-F]{2}70737368.*', hex_pssh)
+
+        if match:
+            extracted_hex = match.group(0)
+            base64_extracted_string = base64.b64encode(bytes.fromhex(extracted_hex)).decode()
+            return base64_extracted_string
+        else:
+            return None, "PSSH pattern not found."
+
+    except (ValueError, base64.binascii.Error):
+        return None, "Invalid Base64 input."
+    
 def fetch_m3u8(url: str) -> m3u8.M3U8:
     response = requests.get(url)
     response.raise_for_status()

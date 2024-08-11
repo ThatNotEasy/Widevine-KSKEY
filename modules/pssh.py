@@ -15,7 +15,7 @@ from uuid import UUID
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
 from modules.logging import setup_logging
-import construct
+from modules.utils import parse_headers
 from construct import Container
 from pymp4.parser import Box
 from urllib.parse import urlparse, parse_qs
@@ -25,12 +25,38 @@ from colorama import Fore, Style
 logging = setup_logging()
 
 
-def fetch_manifest(url, proxy=None):
+def fetch_manifest(url, proxy=None, headers=None):
+    """
+    Fetches the manifest from the given URL and returns the response text.
+
+    Args:
+        url (str): The URL to fetch the manifest from.
+        proxy (dict, optional): A dictionary of proxy settings. Defaults to None.
+        headers (list, optional): Additional headers to include in the request in the format "Key: Value". Defaults to None.
+
+    Returns:
+        str: The text of the response.
+    """
     logging.info(f"{Fore.YELLOW}Fetching manifest from URL: {Fore.RED}{url}{Fore.RESET}")
     print(Fore.MAGENTA + "=============================================================================================================")
-    headers = {"Origin": url, "Referer": url}
-    response = requests.get(url, proxies=proxy, headers=headers)
+    
+    # Define default headers
+    default_headers = {"Origin": url, "Referer": url}
+    
+    if headers:
+        # Parse and merge user-provided headers
+        parsed_headers = parse_headers(headers)
+        default_headers.update(parsed_headers)
+    
+    # Log and print headers
+    # logging.info(f"Request headers: {default_headers}")
+    for key, value in default_headers.items():
+        logging.info(f"{Fore.YELLOW}Headers: {Fore.RED}{parsed_headers}{Fore.RESET}")
+    
+    # Make the HTTP request
+    response = requests.get(url, proxies=proxy, headers=default_headers)
     response.raise_for_status()
+    
     return response.text
 
 def extract_kid_and_pssh_from_mpd(manifest):

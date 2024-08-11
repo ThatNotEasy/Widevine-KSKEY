@@ -1,4 +1,4 @@
-import re, requests, glob, os, base64, json, httpx
+import re, requests, glob, os, base64, json, httpx, urllib3
 from urllib.parse import quote
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module, get_cookies_module
@@ -15,6 +15,8 @@ from services import paralelo
 from colorama import Fore
 import cloudscraper
 from modules.logging import setup_logging
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging = setup_logging()
 session = requests.Session()
@@ -52,6 +54,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     # logging.debug(f"{Fore.GREEN}Params: {Fore.YELLOW}{params}{Fore.RESET}")
     # print(Fore.MAGENTA + "=============================================================================================================")
     # logging.debug(f"{Fore.GREEN}Cookies: {Fore.YELLOW}{cookies}{Fore.RESET}")
+    # print(Fore.MAGENTA + "=============================================================================================================")
+    # logging.debug(f"{Fore.GREEN}Headers: {Fore.YELLOW}{headers}{Fore.RESET}")
 
     device = load_first_wvd_file()
     cdm = Cdm.from_device(device)
@@ -90,7 +94,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll", "hbomax"]:
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
-    elif service_name == "unifi":
+    elif service_name in ["dazn","unifi"]:
         response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy, verify=False)
     elif service_name == "flow":
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, cookies=cookies, proxies=proxy)

@@ -8,7 +8,7 @@ from modules.arg_parser import parse_arguments
 from services.netflix import download_netflix
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
 from modules.pssh import amz_pssh, extract_pssh_from_m3u8, fetch_manifest, extract_kid_and_pssh_from_mpd, pssh_parser
-from modules.utils import print_title, print_license_keys, clear_screen, colored_input
+from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers
 from modules.license_retrieval import get_license_keys
 
 logging = setup_logging()
@@ -20,6 +20,8 @@ def main():
     print_title('Widevine-KSKEY')
     args = parse_arguments()
 
+    headers = parse_headers(args.header)
+
     if not args.service:
         logging.error("No service specified. Please specify a service to proceed.")
         sys.exit(1)
@@ -27,7 +29,7 @@ def main():
     if args.service.lower() == "netflix":
         handle_netflix(args)
     else:
-        handle_other_services(args)
+        handle_other_services(args, headers)
 
 def handle_netflix(args):
     if not args.content_id:
@@ -35,7 +37,7 @@ def handle_netflix(args):
         sys.exit(1)
     asyncio.run(download_netflix(args.content_id, 'output'))
 
-def handle_other_services(args):
+def handle_other_services(args, headers):
     proxy = setup_proxy(args)
     pssh = get_pssh_data(args, proxy)
     if not pssh:
@@ -45,7 +47,7 @@ def handle_other_services(args):
     keys = get_license_keys(pssh, args.license_url, args.service, args.content_id or args.mpd_url, proxy)
     
     if keys:
-        proceed_with_download(args, keys, proxy)
+        proceed_with_download(args, keys, proxy, headers)
     else:
         logging.error("Failed to retrieve valid keys.")
 
@@ -70,7 +72,7 @@ def get_pssh_data(args, proxy):
         if args.service == "prime" and args.mpd_url:
             return amz_pssh(args.mpd_url, proxy)
         elif args.mpd_url:
-            manifest = fetch_manifest(args.mpd_url, proxy)
+            manifest = fetch_manifest(args.mpd_url, proxy, args.header)
             return extract_kid_and_pssh_from_mpd(manifest) if manifest else None
         elif args.pssh:
             return pssh_parser(args.pssh)
@@ -80,7 +82,7 @@ def get_pssh_data(args, proxy):
         logging.error(f"An error occurred fetching PSSH data: {e}")
         return None
 
-def proceed_with_download(args, keys, proxy):
+def proceed_with_download(args, keys, proxy, headers):
     print_license_keys(keys)
     if confirm_user_proceed():
         logging.info(f"Download options: {Fore.RED}[1] {Fore.GREEN}N3MU8DL (Recommended) {Fore.YELLOW}| {Fore.RED}[2] {Fore.GREEN}YT-DLP{Fore.RESET}")
@@ -99,7 +101,7 @@ def proceed_with_download(args, keys, proxy):
                 logging.error("No manifest URL provided.")
                 return
 
-            mpd_content = fetch_mpd(mpd_url, proxy)
+            mpd_content = fetch_mpd(mpd_url, proxy, headers)
             if not mpd_content:
                 logging.error("Failed to fetch MPD content.")
                 return

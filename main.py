@@ -56,30 +56,40 @@ def setup_proxy(args):
     proxy_input = args.proxy.lower() if args.proxy else ""
     
     if proxy_input == "scrape":
+        logging.info("Using 'scrape' proxy method.")
         proxy = proxyscrape()
+        
     elif proxy_input == "rotate":
+        logging.info("Using 'rotate' proxy method.")
+        print(Fore.MAGENTA + "=" * 120)
         proxy = rotate_proxy()
+        
     elif proxy_input.upper() in allowed_countries:
+        logging.info(f"Using country-based proxy for: {proxy_input.upper()}.")
+        print(Fore.MAGENTA + "=" * 120)
         proxy_data = init_proxy({"zone": proxy_input.upper(), "port": "peer"})
         proxy = {"http": proxy_data, "https": proxy_data}
+        
     else:
-        proxy = {"http": args.proxy, "https": args.proxy} if args.proxy else {}
-    
+        if args.proxy:
+            logging.info(f"Using provided proxy: {args.proxy}")
+            print(Fore.MAGENTA + "=" * 120)
+            proxy = {"http": args.proxy, "https": args.proxy}
+        else:
+            pass
+            # logging.info("No proxy provided. Continuing without a proxy.")
     return proxy
 
 def get_pssh_data(args, proxy):
     try:
-        # Initialize parsed_headers to None or an empty dictionary
         parsed_headers = None
 
         if args.service == "prime" and args.mpd_url:
             return amz_pssh(args.mpd_url, proxy)
         elif args.mpd_url:
-            # Parse headers only if args.header is provided
             if args.header:
                 parsed_headers = parse_headers(args.header)
 
-            # Ensure parsed_headers is passed correctly even if None
             manifest = fetch_manifest(args.mpd_url, proxy, parsed_headers)
             return extract_kid_and_pssh_from_mpd(manifest) if manifest else None
         elif args.pssh:
@@ -94,9 +104,9 @@ def proceed_with_download(args, keys, proxy, headers):
     print_license_keys(keys)
     if confirm_user_proceed():
         logging.info(f"Download options: {Fore.RED}[1] {Fore.GREEN}N3MU8DL (Recommended) {Fore.YELLOW}| {Fore.RED}[2] {Fore.GREEN}YT-DLP{Fore.RESET}")
-        print(Fore.MAGENTA + "=" * 108)
+        print(Fore.MAGENTA + "=" * 120)
         choice = input("Enter your choice (1 or 2): ").strip()
-        print(Fore.MAGENTA + "=" * 108)
+        print(Fore.MAGENTA + "=" * 120)
 
         if choice == '1':
             save_name = colored_input("Enter the output name (WithoutExtension): ", Fore.CYAN).strip()

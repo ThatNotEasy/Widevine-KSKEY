@@ -1,4 +1,4 @@
-import re, requests, glob, os, base64, json, httpx, urllib3
+import re, requests, glob, os, base64, json, httpx, urllib3, cloudscraper, services.vdocipher
 from urllib.parse import quote
 from base64 import b64encode, b64decode
 from modules.utils import get_service_module, get_cookies_module
@@ -13,7 +13,6 @@ from services.netflix import download_netflix
 from services.udemy import get_cookies
 from services import paralelo
 from colorama import Fore
-import cloudscraper
 from modules.logging import setup_logging
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -22,7 +21,7 @@ logging = setup_logging()
 session = requests.Session()
 scraper = cloudscraper.create_scraper()
 
-def load_first_wvd_file(directory="."):
+def load_first_wvd_file(directory="device"):
     wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
     if wvd_files:
         return Device.load(wvd_files[0])
@@ -68,7 +67,13 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     service_module = get_service_module(service_name)
     
     headers = getattr(service_module, 'get_headers', lambda: {})()
-    data = getattr(service_module, 'get_data', lambda: {})()
+    get_data_func = getattr(service_module, 'get_data', lambda: {})
+
+    if service_name == "vdocipher" and challenge_b64:
+        data = get_data_func(challenge_b64=challenge_b64)
+    else:
+        data = get_data_func()
+
     params = getattr(service_module, 'get_params', lambda: {})()
     cookies = getattr(service_module, 'get_cookies', lambda: {})()
     
@@ -90,7 +95,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge_bytes)
         response = session.post(url=lic_url, headers=headers, data=data, proxies=proxy)
-    elif service_name in ["vdocipher", "newsnow"]:
+    elif service_name == "newsnow":
         data["licenseRequest"] = challenge_b64
         response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll", "hbomax"]:
@@ -110,10 +115,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         manifest_url = vod_request['asset']['endpoints'][0]['url']
         pssh = get_pssh(manifest_url)
         response = session.post(url=license_url, headers=headers, data=challenge_bytes, proxies=proxy)
-    elif service_name == "udemy":
+    elif service_name in ["virgintv","udemy"]:
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
-    elif service_name == "virgintv":
-        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
+    elif service_name == "tfc":
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
     elif service_name == "directtv":
         data["licenseChallenge"] = challenge_b64
         response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
@@ -141,6 +146,11 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
     elif service_name == "itv":
         response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
+    elif service_name == "vdocipher":
+        vdo = services.vdocipher.get_data(challenge_b64)
+        print(vdo)
+        response = session.post(url=lic_url, headers=headers, json=vdo, proxies=proxy)
+        print(response.content)
     else:
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
     
@@ -175,7 +185,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
     elif service_name == "paralelo":
         license_b64 = response.json()["data"]["drm_license"]["license"]
-    elif service_name in ["exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv"]:
+    elif service_name in ["tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["vtmgo", "videotron"]:
         license_b64 = response.json()["license"] 

@@ -70,7 +70,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     get_data_func = getattr(service_module, 'get_data', lambda: {})
 
     if service_name == "vdocipher" and challenge_b64:
-        data = get_data_func(challenge_b64=challenge_b64)
+        data = get_data_func(challenge_b64)
     else:
         data = get_data_func()
 
@@ -82,15 +82,17 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         return False, None
     
     if service_name == "prime":
-        data['widevine2Challenge'] = challenge_b64
-        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=data, proxies=proxy)
+        data['licenseChallenge'] = challenge_b64
+        print(data)
+        response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxy)
+        print(response.content)
     elif service_name in ["astro", "music-amz"]:
         data['licenseChallenge'] = challenge_b64
         response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
     elif service_name == "apple":
         data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
         response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
-    elif service_name in ["sooka","tonton"]:
+    elif service_name in ["sooka","tonton", "roku", "toggo"]:
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
     elif service_name == "youku":
         data["licenseRequest"] = b64decode(challenge_bytes)
@@ -98,11 +100,19 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     elif service_name == "newsnow":
         data["licenseRequest"] = challenge_b64
         response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
-    elif service_name in ["filmo", "viaplay", "peacock", "rakuten", "viki", "paramountplus", "crunchyroll", "hbomax"]:
+    elif service_name in ["filmo", "viaplay", "peacock", "viki", "paramountplus", "crunchyroll", "hbomax"]:
         response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxy)
     elif service_name in ["dazn","unifi"]:
-        response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy, verify=False)
-    elif service_name == "flow":
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
+    elif service_name == "rakuten":
+        response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxy)
+    elif service_name == "cignal":
+        response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
+    elif service_name == "starzon":
+        decoded_bytes = base64.b64decode(challenge_b64)
+        data["drm_info"] = list(decoded_bytes)
+        response = session.post(url=lic_url, headers=headers, json=data, proxies=proxy)
+    elif service_name in ["flow", "tvdmm"]:
         response = session.post(url=lic_url, headers=headers, data=challenge_bytes, cookies=cookies, proxies=proxy)
     elif service_name == "skyshowtime":
         token_url = 'https://ovp.skyshowtime.com/auth/tokens'
@@ -185,7 +195,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
     elif service_name == "paralelo":
         license_b64 = response.json()["data"]["drm_license"]["license"]
-    elif service_name in ["tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv"]:
+    elif service_name in ["starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
         license_b64 = b64encode(response.content).decode()
     elif service_name in ["vtmgo", "videotron"]:
         license_b64 = response.json()["license"] 

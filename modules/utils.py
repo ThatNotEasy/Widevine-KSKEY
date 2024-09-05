@@ -30,12 +30,14 @@ def parse_headers(header_list):
     headers = {}
     if header_list:
         for header in header_list:
-            try:
-                key, value = header.split(":", 1)
-                headers[key.strip()] = value.strip()
-                # logging.info(f"Added header: {key.strip()} -> {value.strip()}")
-            except ValueError:
-                logging.warning(f"Skipping invalid header format: {header}. Ensure it is in the format 'Key: Value'.")
+            if ':' in header:
+                try:
+                    key, value = header.split(":", 1)
+                    headers[key.strip()] = value.strip()
+                except ValueError as e:
+                    logging.warning(f"Failed to process header: {header} due to {str(e)}.")
+            else:
+                pass
     return headers
 
 def colored_input(prompt, color):

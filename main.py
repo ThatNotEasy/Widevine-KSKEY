@@ -1,7 +1,7 @@
 import sys
 import asyncio
 from colorama import init, Fore
-from modules.downloader import drm_downloader, validate_keys, fetch_mpd
+from modules.downloader import drm_downloader, validate_keys, fetch_mpd, direct_downloads
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
@@ -21,6 +21,14 @@ def main():
     args = parse_arguments()
 
     headers = parse_headers(args.header)
+    
+    if args.downloads and args.mpd_url:
+        proxy = args.proxy if args.proxy else None
+        output_name = args.output if args.output else "default"
+        direct_downloads(args.mpd_url, output_name, proxy)
+    else:
+        logging.info("You must provide both -d (downloads) and -m (MPD URL) to trigger the download.")
+        print(Fore.MAGENTA + "=" * 120)
 
     if not args.service:
         logging.error("No service specified. Please specify a service to proceed.")
@@ -82,14 +90,11 @@ def setup_proxy(args):
 
 def get_pssh_data(args, proxy):
     try:
-        parsed_headers = None
-
         if args.service == "prime" and args.mpd_url:
             return amz_pssh(args.mpd_url, proxy)
         elif args.mpd_url:
-            if args.header:
-                parsed_headers = parse_headers(args.header)
-
+            # Parse headers only if provided, fetch manifest, and extract KID and PSSH
+            parsed_headers = parse_headers(args.header) if args.header else None
             manifest = fetch_manifest(args.mpd_url, proxy, parsed_headers)
             return extract_kid_and_pssh_from_mpd(manifest) if manifest else None
         elif args.pssh:

@@ -162,7 +162,49 @@ def segment_video_for_dash(input_file, output_mpd):
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to segment video for DASH: {e}")
 
+def direct_downloads(url: str, output_name: str, proxy: str = None):
+    """
+    Downloads DRM-protected content using N_m3u8DL-RE.
 
+    Parameters:
+    url (str): The URL of the MPD file.
+    output_name (str): The name of the output file.
+    proxy (str): The proxy to be used for the download (optional).
+    
+    Returns:
+    None
+    """
+    try:
+        content_dir = "content"
+        os.makedirs(content_dir, exist_ok=True)
+        
+        # Header and proxy configuration
+        headers = 'User-Agent: Dalvik/2.1.0 (Android 13)'
+        
+        # Prepare the command
+        cmd = (
+            f'N_m3u8DL-RE "{url}" '
+            f'--header "{headers}" '
+            f'--save-dir "{content_dir}" --save-name "{output_name}" '
+            f'-mt -sv "BEST" -sa "BEST" -M format=mp4 --del-after-done'
+        )
+
+        # Adding proxy to the command if specified
+        if proxy:
+            cmd += f' --custom-proxy "http://{proxy}"'
+        
+        logging.info(f"Starting download: {url}")
+        result = os.system(cmd)
+        
+        if result == 0:
+            logging.info(f"Download completed successfully. Files saved to: {content_dir}")
+        else:
+            logging.error(f"Download failed with return code {result}")
+    
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+    
+    
 def drm_downloader(url: str, output_name: str, key: str, proxy: str):
     """
     Downloads DRM-protected content using N_m3u8DL-RE.

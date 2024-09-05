@@ -13,5 +13,7 @@ def parse_arguments():
     parser.add_argument('-p', '--pssh', required=False, help='Protection System Specific Header (PSSH)')
     parser.add_argument('-s', '--service', required=False, help='Specify the service module (e.g., prime, netflix)')
     parser.add_argument('-c', '--content-id', required=False, help='Specify the content id for HBOGO modules')
+    parser.add_argument('-d', '--downloads', action='store_true', help='Specify to trigger the download process')
+    parser.add_argument('-o', '--output', required=False, help='Specify the content output name')
     parser.add_argument('-H', '--header', action='append', help='Specify headers in the format "Key: Value"')
     return parser.parse_args()

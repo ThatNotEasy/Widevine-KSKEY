@@ -124,7 +124,7 @@ def get_vod_request(vod_url, region, user_token, video_url):
         'x-skyott-country': region,
         'x-skyott-device': 'MOBILE',
         'x-skyott-platform': 'ANDROID',
-        'x-skyott-proposition': 'SKYSHOWTIME',
+        'x-skyott-proposition': 'NBCUOTT',
         'x-skyott-provider': 'SKYSHOWTIME',
         'x-skyott-territory': region,
         'x-skyott-usertoken': user_token,

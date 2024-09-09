@@ -26,17 +26,6 @@ logging = setup_logging()
 
 
 def fetch_manifest(url, proxy=None, headers=None):
-    """
-    Fetches the manifest from the given URL and returns the response text.
-
-    Args:
-        url (str): The URL to fetch the manifest from.
-        proxy (dict, optional): A dictionary of proxy settings. Defaults to None.
-        headers (list, optional): Additional headers to include in the request in the format "Key: Value". Defaults to None.
-
-    Returns:
-        str: The text of the response.
-    """
     logging.info(f"{Fore.YELLOW}Fetching manifest from URL: {Fore.RED}{url}{Fore.RESET}")
     print(Fore.MAGENTA + "=============================================================================================================")
     
@@ -80,28 +69,29 @@ def extract_kid_and_pssh_from_mpd(manifest):
         print(f"Error extracting KID and PSSH from MPD manifest: {e}")
         raise
 
-def get_pssh(url, proxy=None):
+def get_pssh(url: str, proxy=None) -> Optional[str]:
     try:
-        kid, pssh = extract_kid_and_pssh(url, proxy)
-        if not pssh:
-            logging.error("No PSSH data provided or extracted.")
-            return None
-        logging.info(f"{Fore.YELLOW}KID: {Fore.RED}{kid}")
-        print(Fore.MAGENTA + "=============================================================================================================")
-        pssh_encoded = base64.b64encode(base64.b64decode(pssh)).decode('utf-8')
-        
-        if not pssh_encoded:
-            logging.error("PSSH encoding failed.")
-            return None
-        return pssh_encoded
+        manifest = fetch_manifest(url, proxy)
+        if '.mpd' in url:
+            pssh = extract_kid_and_pssh_from_mpd(manifest)
+            if pssh:
+                pssh_encoded = base64.b64encode(base64.b64decode(pssh)).decode('utf-8')
+                return pssh_encoded
+        elif '.m3u8' in url:
+            m3u8_obj = fetch_m3u8(url)
+            pssh = extract_pssh_from_m3u8(m3u8_obj)
+            if pssh:
+                return pssh
+        logging.error("Unsupported manifest type or failed extraction.")
+        return None
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         return None
 
-def get_pssh_from_mpd(mpd_url, proxy=None):
+def get_pssh_from_mpd(manifest_url, proxy=None):
     pssh = ''
     try:
-        r = requests.get(url=mpd_url, proxies=proxy)
+        r = requests.get(url=manifest_url, proxies=proxy)
         r.raise_for_status()
         xml = xmltodict.parse(r.text)
         mpd = json.loads(json.dumps(xml))
@@ -163,20 +153,40 @@ def pssh_parser(base64_pssh):
         return None, "Invalid Base64 input."
     
 def fetch_m3u8(url: str) -> m3u8.M3U8:
-    response = requests.get(url)
-    response.raise_for_status()
-    return m3u8.loads(response.text)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return m3u8.loads(response.text)
+    except requests.RequestException as e:
+        logging.error(f"Failed to fetch m3u8 playlist: {e}")
+        raise
 
-def extract_pssh_from_m3u8(m3u8_obj: m3u8.M3U8) -> str:
+def extract_pssh_from_m3u8(m3u8_obj: m3u8.M3U8) -> Optional[str]:
     keys = m3u8_obj.keys + m3u8_obj.session_keys
     for key in keys:
         if key and key.uri and key.uri.startswith('data:text/plain;base64,'):
             base64_data = key.uri.split(',')[1]
-            pssh_data = base64.b64decode(base64_data)
-            return base64.b64encode(pssh_data).decode('utf-8')
+            try:
+                pssh_data = base64.b64decode(base64_data)
+                return base64.b64encode(pssh_data).decode('utf-8')
+            except (base64.binascii.Error, ValueError) as e:
+                logging.error(f"Failed to decode Base64 data: {e}")
+                return None
     return None
 
-def extract_kid_and_pssh(url, proxy=None):
+def get_pssh_from_m3u8_url(url: str) -> Optional[str]:
+    try:
+        m3u8_obj = fetch_m3u8(url)
+        pssh = extract_pssh_from_m3u8(m3u8_obj)
+        if pssh:
+            return pssh
+        logging.error("Failed to extract PSSH from m3u8.")
+        return None
+    except Exception as e:
+        logging.error(f"An error occurred while fetching PSSH from m3u8 URL: {e}")
+        return None
+
+def extract_kid_and_pssh(url: str, proxy=None):
     manifest = fetch_manifest(url, proxy)
     if '.mpd' in url:
         return extract_kid_and_pssh_from_mpd(manifest)

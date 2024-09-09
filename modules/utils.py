@@ -52,12 +52,9 @@ def get_binary_path(*names: str) -> Optional[Path]:
             return Path(path)
     return None
 
-def print_title(title_text, proxy=None):
+def print_title(title_text):
     title = pyfiglet.figlet_format(title_text, font='slant')
-    if proxy:
-        print(Fore.YELLOW + f"{title}Running with proxy settings: {proxy}" + Style.RESET_ALL)
-    else:
-        print(Fore.CYAN + f"{title}Running " + Style.RESET_ALL)
+    print(Fore.CYAN + f"{title}Running " + Style.RESET_ALL)
 
 def print_license_keys(keys):
     for key in keys:

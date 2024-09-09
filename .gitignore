@@ -15,10 +15,9 @@ content/
 # Ignore specific files
 PythonImportHelper-v2-Completion.json
 config.ini
-device_client_id_blob
-device_private_key
-google_sdk_gphone64_x86_64_18.0.0@340720000_f9ee1d09_28615_l1.wvd
 logs/logfile.log
+device
+logs
 # Ignore log files
 
 

@@ -12,8 +12,8 @@ init(autoreset=True)
 
 logging = setup_logging()
 
-def fetch_mpd(mpd_url, headers=None, proxy=None):
-    response = requests.get(mpd_url, headers=headers, proxies=proxy)
+def fetch_mpd(manifest_url, headers=None, proxy=None):
+    response = requests.get(manifest_url, headers=headers, proxies=proxy)
     response.raise_for_status()
     return response.text
 

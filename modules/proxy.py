@@ -2,11 +2,11 @@ import requests
 import uuid
 import json
 import random
+from colorama import Fore
 from modules.logging import setup_logging
 
 logging = setup_logging()
 
-PROXY_SCRAPE_URL = "https://api.proxyscrape.com/?request=displayproxies&proxytype=all"
 ROTATE_PROXY = "https://dev.kepala-pantas.xyz/dev/osint/rotate-proxy"
 
 class Settings:
@@ -139,21 +139,40 @@ class Hola:
             logging.error(f"JSON decode error: {e}")
             raise
 
-def proxyscrape() -> list:
+def proxyscrape(country=None):
+    PROXY_SCRAPE_URL = f"https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies"
+    if country:
+        PROXY_SCRAPE_URL += f"&country={country}"
+    PROXY_SCRAPE_URL += "&proxy_format=protocolipport&format=text"
+
     try:
         response = requests.get(PROXY_SCRAPE_URL)
         response.raise_for_status()
         proxies = response.text.split('\n')
         proxies = [proxy.strip() for proxy in proxies if proxy.strip()]
-        
-        # Ensure each proxy URL has a scheme
-        proxies = ["http://" + proxy if not proxy.startswith("http") else proxy for proxy in proxies]
-        
-        logging.debug(f"Fetched {len(proxies)} proxies from ProxyScrape")
-        return proxies
+
+        # Normalize proxy format
+        filtered_proxies = []
+        for proxy in proxies:
+            if proxy.startswith("socks"):
+                filtered_proxies.append(proxy)
+            else:
+                if not proxy.startswith("http"):
+                    proxy = "http://" + proxy
+                filtered_proxies.append(proxy)
+
+        if filtered_proxies:
+            chosen_proxy = random.choice(filtered_proxies)
+            logging.info(f"{Fore.YELLOW}Fetched {Fore.GREEN}{len(filtered_proxies)} {Fore.YELLOW}proxies from ProxyScrape. Selected proxy: {Fore.GREEN}{chosen_proxy}")
+            print(Fore.MAGENTA + "=" * 120)
+            return chosen_proxy
+        else:
+            logging.warning("No valid proxies found.")
+            return None
+
     except requests.RequestException as e:
         logging.error(f"Request error while fetching proxies: {e}")
-        return []
+        return None
 
 def init_proxy(data):
     settings = Settings(

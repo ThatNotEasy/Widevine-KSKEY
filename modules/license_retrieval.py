@@ -10,7 +10,6 @@ from modules.pssh import get_pssh, get_pssh_from_mpd
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from services.directtv import get_data
 from services.netflix import download_netflix
-from services.udemy import get_cookies
 from services import paralelo
 from colorama import Fore
 from requests.adapters import HTTPAdapter

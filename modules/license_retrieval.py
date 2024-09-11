@@ -1,7 +1,7 @@
 import re, requests, glob, os, base64, json, httpx, urllib3, cloudscraper, services.vdocipher, socks
 from urllib.parse import quote
 from base64 import b64encode, b64decode
-from modules.utils import get_service_module, get_cookies_module
+from modules.utils import get_service_module
 from pywidevine.pssh import PSSH
 from pywidevine.device import Device
 from pywidevine.cdm import Cdm
@@ -9,7 +9,6 @@ from services.hbogo import get_license
 from modules.pssh import get_pssh, get_pssh_from_mpd
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from services.directtv import get_data
-from services.netflix import download_netflix
 from services import paralelo
 from colorama import Fore
 from requests.adapters import HTTPAdapter
@@ -82,8 +81,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
 
         # Make the request
         if service_name == "prime":
-            data['licenseChallenge'] = challenge_b64
+            data['widevine2Challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxy)
+            print(response.content)
         elif service_name in ["astro", "music-amz"]:
             data['licenseChallenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxy)
@@ -145,6 +145,14 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
             response = session.post(url=lic_url, headers=headers, data=json_data, proxies=proxy)
         elif service_name == "todtv":
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxy)
+        elif service_name == "telia":
+            data["Payload"] = challenge_b64
+            data["LatensRegistration"]["DeviceInfo"]["DeviceType"] = "Android"
+            json_string = json.dumps(data)
+            modified_encoded_data = base64.b64encode(json_string.encode('utf-8'))
+            modified_encoded_data_str = modified_encoded_data.decode('utf-8')
+            response = session.post(url=lic_url, headers=headers, data=modified_encoded_data_str, proxies=proxy)
+            print(response.text)
         elif service_name == "amateurtv":
             response = session.post(url=lic_url, headers=headers, cookies=cookies, data=challenge_bytes, proxies=proxy)
         elif service_name in ["exxen", "hotstar", "mewatch"]:
@@ -202,11 +210,11 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         for key in cdm.get_keys(session_id):
             if key.type != "SIGNING":
                 returned_keys.append(f"--key {key.kid.hex}:{key.key.hex()}")
-                cached_keys += f"--key {key.kid.hex}:{key.key.hex()}\n"
+                cached_keys += f"{Fore.YELLOW}--key {Fore.GREEN}{key.kid.hex}:{key.key.hex()}{Fore.RESET}\n"
         cdm.close(session_id)
 
         return returned_keys
     except requests.RequestException as e:
-        logging.info(f"{Fore.YELLOW}Status: {Fore.RED}Bad/Timeout proxy, please use another!{Fore.RESET}")
+        logging.info(f"{Fore.YELLOW}Status: {Fore.RED}{e}{Fore.RESET}")
         print(Fore.MAGENTA + "=" * 120)
         

@@ -6,12 +6,10 @@ from modules.downloader import drm_downloader, validate_keys, fetch_mpd, direct_
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
-from services.netflix import download_netflix
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
-from modules.pssh import amz_pssh, extract_pssh_from_m3u8, fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd
-from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers
+from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd
+from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching
 from modules.license_retrieval import get_license_keys
-from requests.adapters import HTTPAdapter
 
 logging = setup_logging()
 config = load_configurations()
@@ -35,17 +33,8 @@ def main():
     if not args.service:
         logging.error("No service specified. Please specify a service to proceed.")
         sys.exit(1)
-
-    if args.service.lower() == "netflix":
-        handle_netflix(args)
     else:
         handle_other_services(args, headers)
-
-def handle_netflix(args):
-    if not args.content_id:
-        logging.error("Error: content_id is required for Netflix service.")
-        sys.exit(1)
-    asyncio.run(download_netflix(args.content_id, 'output'))
 
 def handle_other_services(args, headers):
     proxy = setup_proxy(args)
@@ -61,7 +50,6 @@ def handle_other_services(args, headers):
     else:
         pass
 
-    
 def setup_proxy(args):
     proxy = {}
     proxy_method = args.proxy.lower() if args.proxy else ""
@@ -80,7 +68,7 @@ def setup_proxy(args):
             logging.info("Using 'scrape' proxy method with no specific country code.")
             proxy_url = proxyscrape()  # Assuming proxyscrape without country code fetches global proxies
             if proxy_url:
-                proxy = {"http": "http://" + proxy_url, "https": "http://" + proxy_url}
+                proxy = {"http": proxy_url, "https": proxy_url}
             else:
                 logging.warning("No proxies found.")
 
@@ -105,8 +93,8 @@ def setup_proxy(args):
                 }
             else:
                 proxy = {
-                    'http': "http://" + proxy_url,
-                    'https': "http://" + proxy_url
+                    'http':  proxy_url,
+                    'https': proxy_url
                 }
         else:
             pass
@@ -114,39 +102,43 @@ def setup_proxy(args):
 
 def get_pssh_data(args, proxy):
     try:
-        if args.service == "prime" and args.manifest_url:
-            # Handle Amazon Prime-specific PSSH extraction
-            return amz_pssh(args.manifest_url, proxy)
-        
-        elif args.manifest_url:
-            # Fetch and process manifest data
-            parsed_headers = parse_headers(args.header) if args.header else None
-            manifest = fetch_manifest(args.manifest_url, proxy, parsed_headers)
-            
-            # Extract KID and PSSH based on the manifest type
-            if manifest:
-                if '.mpd' in args.manifest_url:
-                    pssh = extract_kid_and_pssh_from_mpd(manifest)
-                    return pssh
-                elif '.m3u8' in args.manifest_url:
-                    return get_pssh_from_m3u8_url(args.manifest_url)
-        
-        elif args.pssh:
-            # Directly parse provided PSSH data
+        if args.pssh:
+            # Directly parse and return provided PSSH data
             return pssh_parser(args.pssh)
         
-        else:
-            logging.warning("No valid input provided for PSSH extraction.")
+        if not args.manifest_url:
+            logging.warning("No manifest URL provided.")
             return None
 
-    except requests.RequestException as e:
-        logging.error(f"Request error: {e}")
+        # Fetch the manifest from the provided URL
+        manifest = fetch_manifest(args.manifest_url, proxy)
+        if not manifest:
+            logging.error("Failed to fetch manifest.")
+            return None
+
+        # Determine the manifest type and extract PSSH data
+        if '.mpd' in args.manifest_url:
+            pssh = extract_kid_and_pssh_from_mpd(manifest)
+            if pssh:
+                return pssh
+            
+            # Attempt to bypass manifest fetching if PSSH data is not found
+            pssh = bypass_manifest_fetching(args.manifest_url)
+            if pssh:
+                return extract_widevine_pssh()
+            
+        
+        if '.m3u8' in args.manifest_url:
+            return get_pssh_from_m3u8_url(args.manifest_url)
+        
+        logging.warning("Unsupported manifest URL type.")
         return None
-    except ValueError as e:
-        logging.error(f"Value error: {e}")
+
+    except (requests.RequestException, ValueError) as e:
+        logging.error(f"Error occurred: {e}")
         return None
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
+        logging.error(f"Unexpected error: {e}")
         return None
 
 def proceed_with_download(args, keys, proxy, headers):

@@ -1,8 +1,0 @@
-[NETFLIX]
-EMAIL = ""
-PASSWORD = ""
-DEVICE = ""
-QUALITY = 720
-AUDIO_LANGUAGE = ["it-IT"]
-VIDEO_PROFILE = high
-QUIET = False

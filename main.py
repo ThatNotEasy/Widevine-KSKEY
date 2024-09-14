@@ -6,13 +6,76 @@ from modules.downloader import drm_downloader, validate_keys, fetch_mpd, direct_
 from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
-from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy
+from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy, used_proxy, read_proxies_from_file
 from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching
-from modules.license_retrieval import get_license_keys
+from modules.license_retrieval import get_license_keys, configure_session
 
 logging = setup_logging()
 config = load_configurations()
+session = requests.Session()
+
+def setup_proxy(args):
+    proxies = []
+    proxy_method = args.proxy.lower() if args.proxy else ""
+    country_code = args.country_code.upper() if args.country_code else None
+
+    if proxy_method == "file":
+        proxies = read_proxies_from_file('proxies.txt')
+        if not proxies:
+            logging.warning("No proxies found in the file.")
+            return {}
+
+    elif proxy_method == "scrape":
+        if country_code and country_code in allowed_countries:
+            logging.info(f"{Fore.YELLOW}Using {Fore.GREEN}scrape {Fore.YELLOW}proxy method for country: {Fore.GREEN}{country_code}.{Fore.RESET}")
+            print(Fore.MAGENTA + "=" * 120)
+            proxy_url = proxyscrape(country_code)
+            if proxy_url:
+                proxies.append(proxy_url)
+            else:
+                logging.warning(f"No proxies found for country: {country_code}.")
+        else:
+            logging.info("Using 'scrape' proxy method with no specific country code.")
+            proxy_url = proxyscrape()
+            if proxy_url:
+                proxies.append(proxy_url)
+            else:
+                logging.warning("No proxies found.")
+
+    elif proxy_method == "rotate":
+        logging.info("Using 'rotate' proxy method.")
+        proxy = rotate_proxy()
+        proxies.append(proxy)
+
+    elif proxy_method.upper() in allowed_countries:
+        logging.info(f"Using country-based proxy for: {proxy_method.upper()}.")
+        proxy_data = init_proxy({"zone": proxy_method.upper(), "port": "peer"})
+        proxies.append(proxy_data)
+
+    else:
+        if args.proxy:
+            logging.info(f"{Fore.YELLOW}Using provided proxy: {Fore.GREEN}{args.proxy}{Fore.RESET}")
+            print(Fore.MAGENTA + "=" * 120)
+            proxy_url = args.proxy
+            if proxy_url.startswith('socks'):
+                proxies.append(proxy_url)
+            else:
+                proxies.append(proxy_url)
+
+    working_proxies = {}
+    for proxy in proxies:
+        test_proxy = used_proxy(proxy)
+        session = configure_session(test_proxy)
+        try:
+            response = session.get('https://httpbin.org/ip', timeout=5)
+            if response.status_code == 200:
+                working_proxies = test_proxy
+                break
+        except requests.RequestException:
+            continue
+    return working_proxies
+
 
 def main():
     init(autoreset=True)
@@ -23,7 +86,7 @@ def main():
     headers = parse_headers(args.header)
     
     if args.downloads and args.manifest_url:
-        proxy = args.proxy if args.proxy else None
+        proxy = setup_proxy(args)
         output_name = args.output if args.output else "default"
         direct_downloads(args.manifest_url, output_name, proxy)
     else:
@@ -50,96 +113,38 @@ def handle_other_services(args, headers):
     else:
         pass
 
-def setup_proxy(args):
-    proxy = {}
-    proxy_method = args.proxy.lower() if args.proxy else ""
-    country_code = args.country_code.upper() if args.country_code else None
-
-    if proxy_method == "scrape":
-        if country_code and country_code in allowed_countries:
-            logging.info(f"{Fore.YELLOW}Using {Fore.GREEN}scrape {Fore.YELLOW}proxy method for country: {Fore.GREEN}{country_code}.{Fore.RESET}")
-            print(Fore.MAGENTA + "=" * 120)
-            proxy_url = proxyscrape(country_code)
-            if proxy_url:
-                proxy = {"http": proxy_url, "https": proxy_url}
-            else:
-                logging.warning(f"No proxies found for country: {country_code}.")
-        else:
-            logging.info("Using 'scrape' proxy method with no specific country code.")
-            proxy_url = proxyscrape()  # Assuming proxyscrape without country code fetches global proxies
-            if proxy_url:
-                proxy = {"http": proxy_url, "https": proxy_url}
-            else:
-                logging.warning("No proxies found.")
-
-    elif proxy_method == "rotate":
-        logging.info("Using 'rotate' proxy method.")
-        proxy = rotate_proxy()
-
-    elif proxy_method.upper() in allowed_countries:
-        logging.info(f"Using country-based proxy for: {proxy_method.upper()}.")
-        proxy_data = init_proxy({"zone": proxy_method.upper(), "port": "peer"})
-        proxy = {"http": proxy_data, "https": proxy_data}
-
-    else:
-        if args.proxy:
-            logging.info(f"{Fore.YELLOW}Using provided proxy: {Fore.GREEN}{args.proxy}{Fore.RESET}")
-            print(Fore.MAGENTA + "=" * 120)
-            proxy_url = args.proxy
-            if proxy_url.startswith('socks'):
-                proxy = {
-                    'http': proxy_url,
-                    'https': proxy_url
-                }
-            else:
-                proxy = {
-                    'http':  proxy_url,
-                    'https': proxy_url
-                }
-        else:
-            pass
-    return proxy
-
 def get_pssh_data(args, proxy):
-    try:
-        if args.pssh:
-            # Directly parse and return provided PSSH data
-            return pssh_parser(args.pssh)
-        
-        if not args.manifest_url:
-            logging.warning("No manifest URL provided.")
-            return None
-
-        # Fetch the manifest from the provided URL
-        manifest = fetch_manifest(args.manifest_url, proxy)
-        if not manifest:
-            logging.error("Failed to fetch manifest.")
-            return None
-
-        # Determine the manifest type and extract PSSH data
-        if '.mpd' in args.manifest_url:
-            pssh = extract_kid_and_pssh_from_mpd(manifest)
-            if pssh:
-                return pssh
-            
-            # Attempt to bypass manifest fetching if PSSH data is not found
-            pssh = bypass_manifest_fetching(args.manifest_url)
-            if pssh:
-                return extract_widevine_pssh()
-            
-        
-        if '.m3u8' in args.manifest_url:
-            return get_pssh_from_m3u8_url(args.manifest_url)
-        
-        logging.warning("Unsupported manifest URL type.")
+    if args.pssh:
+        # Directly parse and return provided PSSH data
+        return pssh_parser(args.pssh)
+    
+    if not args.manifest_url:
+        logging.warning("No manifest URL provided.")
         return None
 
-    except (requests.RequestException, ValueError) as e:
-        logging.error(f"Error occurred: {e}")
+    # Fetch the manifest from the provided URL
+    manifest = fetch_manifest(args.manifest_url, proxy)
+    if not manifest:
+        logging.error("Failed to fetch manifest.")
         return None
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return None
+
+    # Determine the manifest type and extract PSSH data
+    if '.mpd' in args.manifest_url:
+        pssh = extract_kid_and_pssh_from_mpd(manifest)
+        if pssh:
+            return pssh
+        
+        # Attempt to bypass manifest fetching if PSSH data is not found
+        pssh = bypass_manifest_fetching(args.manifest_url)
+        if pssh:
+            return extract_widevine_pssh()
+        
+    
+    if '.m3u8' in args.manifest_url:
+        return get_pssh_from_m3u8_url(args.manifest_url)
+    
+    logging.warning("Unsupported manifest URL type.")
+    return None
 
 def proceed_with_download(args, keys, proxy, headers):
     print_license_keys(keys)

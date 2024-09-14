@@ -1,21 +1,24 @@
 def get_headers():
     headers = {
-    'accept': '*/*',
-    'accept-language': 'en-US,en;q=0.9',
-    'authorization': 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzo4MDQ2ODQ5ZC1lYjJhLTQ3ZDUtYTUxZi1iZTY2ZDFkYTA0NTkiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsiZWRnZS1zZXJ2aWNlIl0sImNsaWVudF9pZCI6IndlYmNsaWVudC11aS1hcHAiLCJleHAiOjE3MjM3MjYwOTIsImV4dCI6e30sImlhdCI6MTcyMzcyMjQ5MiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmFwaS5jaWduYWwuZmlyc3RsaWdodC5haS8iLCJqdGkiOiJiMmE5ZTlmZi04Y2RhLTQ2MjUtOTJlMS04OThjOGRhZTg5Y2EiLCJuYmYiOjE3MjM3MjI0OTIsInNjcCI6WyJvZmZsaW5lIiwib3BlbmlkIl0sInN1YiI6IndlYmNsaWVudC11aS1hcHAifQ.T9ydyzPTCMCa0I2WpGmIuwebgAWHqDGBSfZGcBYNZlwC_L5vqZNogKXA9z9d6qFU4lckzn5fdFonNlh2jlgvhNJq-RPkjsJIDM2_vOzhwwbDYqpbVkt9h7-sPN_jrmlSCZ3aIE1wfHh6ndrLzKDQQtKxfya1dCouVb16vPrLHoluRadLYM7PpPfy5YEgoxWFf5L2uC54ySvp1Pw2mwndO5P7274nxeyFbarMbkndc8Av4K-ndcylNrGXJToBlP6bYajCrSMpUi9cRRwldnP38lTnAK-c3EXWNnEf_e_qNFp11pDGdm3X2UGMz0AIqh3tGwTtCuUCWxVgvEM6DU_GkDnWl64TNYEEUB4rNoDYXZnkZoLhkoxF_nb_DXjDw2kSmKMaqRefnE3hVjKI573MnRH-ijwNBc-SzYeXvIUdH6QSztODF79P0Cbgx7yQVX9YGJK0Ux6yF4-IAwGbMDK7cf-bjCU5k-e7mMbhWvPXjLz6Ya5BAjjZK_4NiwgV3qK-O2vFaMsvlfSqYrk3Irqx50vdqovRU60-fsHS68JLlQTVf3YtF9tACp6BSBcwlh4N6QLPnv2UwnVp8U7gSxRIuESvj8OO8RjMt8AJ7-xupx6x5tRIyOsqF1e00afCAr6WDs_OlNcEIJxyJ4kBZz5tiSBhN0WuIaR0tj5J3MmFya4',
-    'origin': 'https://cignalplay.com',
-    'priority': 'u=1, i',
-    'referer': 'https://cignalplay.com/',
-    'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'cross-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
-}
+        'sec-ch-ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+        'DNT': '1',
+        'sec-ch-ua-mobile': '?0',
+        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzo4MDQ2ODQ5ZC1lYjJhLTQ3ZDUtYTUxZi1iZTY2ZDFkYTA0NTkiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsiZWRnZS1zZXJ2aWNlIl0sImNsaWVudF9pZCI6IndlYmNsaWVudC11aS1hcHAiLCJleHAiOjE3MjYyMzkxMjAsImV4dCI6e30sImlhdCI6MTcyNjIzNTUyMCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmFwaS5jaWduYWwuZmlyc3RsaWdodC5haS8iLCJqdGkiOiJkMWRiNjdmZC0xMGQzLTRkZjgtYTNlZS04OWUwNDRlMGEwMTkiLCJuYmYiOjE3MjYyMzU1MjAsInNjcCI6WyJvZmZsaW5lIiwib3BlbmlkIl0sInN1YiI6IndlYmNsaWVudC11aS1hcHAifQ.rHWb5kTXr2IHnp61j5TldQI2xzZJ9dvycfJaJdJokBpyngVRpWb0XFGu88AVGdq9OOvo6ZM3rM5QkW7zARgb-FLQe6hK-CJQB-IKadCQ03AimnYlAkRDYOlknrv8iLvyabcOWK1cNIlozCsfk6GUt57qZAUmPQf5BIOIWXkVA30rj5q36Bkku44N69Ff7K2FcD3oTO2_UMSBxVFaDb2peS1PIRbZDBtIDPQsAeqm0NI_XJ65OMxWHiaeDVMhTgi_3VU1GoDQhVJ4PzAr8RM3a5rw0NL6BbMV6pdRX74vTX_ir-HT4iuMm_qFX2dNqtbDej70wgsnQJVwqOQHfvzNiWLwpCvJlLNjf9DEe6Ayt2KpJYg1w9Bm1s1B7eJWqEiuVfAkTf1xS9t6dfUqDcSmupG5OxqSutGtP7JpqGGGf3gTDGN-LDwqXHxFgf1qeKC8uVe1Xj9gGQb9NGbhdNsNH3rjSUayMWmH1mDjb5N0gIRYnX4WH6oqS5ZMRFcdAxbgPY8IH7Ro7le3GQEPgh3i09RRyj6iTIEP7LTWgEAGAXdPN4-IFyG1qlQBK7t5gBrLejwqiU8cjFr67pvc5jUB9700b393nDh9S-NyMlB7PTNu6JlGCq-DmR8afzwxx9D-xfXMunbLC6D69mUPsYgMRUIOTR465lBJcep7OhaB01Y',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Content-Type': 'application/json',
+        'Referer': 'https://cignalplay.com/',
+        'X-Client-Id': 'pldt-cignal-web',
+        'X-Authorization': 'eyJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiZGlyIn0..foN_5XTh5qIL7YxZ.y4tD1W6OIds4ipvn6ziCZ5m6D_RMccZOi_fpONLPYBzDx0J9PJpt1CKoFigFniGVrWZmQGID78PeejLfnxAQrzpld-zpo79j-sPDa0-L-9XlRMYSs0_57zPehU7XvU4YF80i4iD1E9U9h9RYSIVfKheP47i4W5jnR5lYavQSAQW1qp64ugvfLyGZOIlP-DOk430_mXXGgqGG6nr-dyCsTgmGhsrLsrtNf3Sf0_gUlo8ifJgKOU2iXG0x8rC2-iXaAj5V7GygDF0WSsMwEUQCxXnXQPE0xxQ_BFYpsLSoDkNAtZlgOPxMqERKb6VKCLIRUEbQNBF12rrHp-ND9BrEBjP1kjgHQh_293pZQbJfTFRwoKPSWFEcYhA12GviNGWhbLLO-AihAtYj0TB1iHCiQrKYa94Z6pt4oKykO-ODon7nh5ZcaD1JC66s89z7c1xMgqO0RPgPoGI8pzIyevWPVLJLJE2qXcXsa4r_hY6zPlwLZmWivhi3xxc0O8mEWwJeHpAzBXDumy7EcblhAH3-CpPvigc7vy3UIuaaZolZUQN2U8EWGA_0YkMDywHx3GX7XGvgMbsWTnqCXdF0oB8kiI6jzb-KXshp144UObjLcc_nTJnhvWYF36U0ajpve-hiAN0gNBDwwvA4CKFoW48OANT4h1RAfUfjID9QMT4cCcNyPNCPNlmeFTR-UFtrzD3oLMI0dgSCkfl_drYz1xkgPBQueYqjqTUu-S3ufZGJy6ia-qwqFfHYv53fK3tXKm-jcZOs5nx22Z8X4SJDKB4yA_spZByA80haN61OqI6nED5KlW9zZubX81phEQ.iU6RlUwTe5qy4f620USZ5Q',
+        'X-Device-Id': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImJiNmY2MDAyLTE3ZTAtNDg1Yi1hMzNhLTlmZmE1OTI4ZGI0NSIsImF1ZCI6InBsYXliYWNrLWF1dGgtc2VydmljZSIsImlhdCI6MTcyNjIzNjQ2Ni4zMzYsImV4cCI6MTcyNjIzNjQ5Ni4zMzZ9.47u3Tgh3-MqV3z4X8JhRK2yVbGuVWps0OO2R_wwab5s',
+        'sec-ch-ua-platform': '"Windows"',
+    }
     return headers
 
-def get_data():
-    data = None
-    return data
+def get_params():
+    params = {
+        "service": "cignal",
+        "version": "1.0",
+        "kid": "810F93CB-854A-40E8-B596-3F3B83AE155C",
+        "ptoken": "eyJjb250ZW50SWQiOiI4MTBGOTNDQi04NTRBLTQwRTgtQjU5Ni0zRjNCODNBRTE1NUMiLCJsaWNlbnNlRXhwaXJ5VGltZSI6MTcyNjI3Nzc4MDY5NCwiZW50aXRsZWRDb250ZW50SWRzIjoiT0RFd1Jqa3pRMEl0T0RVMFFTMDBNRVU0TFVJMU9UWXRNMFl6UWpnelFVVXhOVFZEIiwibWF4VXNlcyI6MSwic2lnbmF0dXJlIjoiNWMyYTYyYzg4Njk2MmEwYjFjMzE2MzMwNGQ4MDFjN2M3YWUzODQzNzgyMGU3OWM1YTQxZWE2YTc4M2RlZmM1YSIsInVuaXF1ZUlkIjoiYmI2ZjYwMDItMTdlMC00ODViLWEzM2EtOWZmYTU5MjhkYjQ1IiwiaXNzdWVyIjoiU0lHTktFWV9QVE9LRU5fQ09OU1VNRV9JU1NVRVIiLCJhcGlLZXkiOiJhcGlLZXkiLCJrZXlWZXJzaW9uIjoidmVyczAxIiwiZXhwaXJ5VGltZSI6MTcyNjIzNDY0MDY5NCwiY3JlYXRlZFRpbWUiOjE3MjYyMzQ1ODA2OTQsInRva2VuTW9kZWxWZXJzaW9uIjoiVjMifQ=="
+    }
+    return params

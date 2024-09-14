@@ -217,3 +217,22 @@ allowed_countries = [
     "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TD", "TG", "TH", "TJ", "TL", "TM", "TN", "TO", "TR",
     "TT", "TV", "TZ", "UA", "UG", "US", "UY", "UZ", "VA", "VC", "VE", "VN", "VU", "WS", "YE", "ZA", "ZM", "ZW"
 ]
+
+def read_proxies_from_file(filename):
+    proxies = []
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                proxy = line.strip()
+                if proxy:
+                    proxies.append(proxy)
+    except FileNotFoundError:
+        print(f"File {filename} not found.")
+    return proxies
+
+def used_proxy(proxy):
+    if isinstance(proxy, dict):
+        return proxy  # Assumes dictionary is properly formatted
+    elif isinstance(proxy, str):
+        return {'http': proxy, 'https': proxy}
+    return {}

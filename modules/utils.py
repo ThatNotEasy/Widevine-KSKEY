@@ -34,36 +34,28 @@ def bypass_manifest_fetching(url: str) -> Optional[str]:
     service = Service(executable_path=chrome_driver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
-    try:
-        driver.get(url)
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        time.sleep(3)  # Adjust sleep time if necessary
+    driver.get(url)
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    time.sleep(3)  # Adjust sleep time if necessary
 
-        manifest_content = driver.page_source
-        if not manifest_content:
-            logging.error("No content found on manifest page.")
-            return None
+    manifest_content = driver.page_source
+    if not manifest_content:
+        logging.error("No content found on manifest page.")
+        return None
 
         # Parse the HTML and extract the <body> content
-        tree = html.fromstring(manifest_content)
-        body_content = tree.xpath('//body')[0].text_content()
+    tree = html.fromstring(manifest_content)
+    body_content = tree.xpath('//body')[0].text_content()
 
-        manifest_file_path = "logs/manifest.mpd"
-        os.makedirs('logs', exist_ok=True)
-        with open(manifest_file_path, "w", encoding="utf-8") as file:
-            file.write(body_content)
+    manifest_file_path = "logs/manifest.mpd"
+    os.makedirs('logs', exist_ok=True)
+    with open(manifest_file_path, "w", encoding="utf-8") as file:
+        file.write(body_content)
         
-        logging.info(f"{Fore.YELLOW}Success - {Fore.GREEN}[200]: Manifest has been bypassed!{Fore.RESET}")
-        print(Fore.MAGENTA + "=" * 120)
+    logging.info(f"{Fore.YELLOW}Success - {Fore.GREEN}[200]: Manifest has been bypassed!{Fore.RESET}")
+    print(Fore.MAGENTA + "=" * 120)
 
-        return body_content
-
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return None
-    
-    finally:
-        driver.quit()
+    return body_content
         
 def extract_widevine_pssh() -> str:
     manifest_file_path = 'logs/manifest.mpd'
@@ -72,42 +64,34 @@ def extract_widevine_pssh() -> str:
         logging.error(f"Manifest file not found at {manifest_file_path}.")
         return None
 
-    try:
-        # Parse the MPD file
-        with open(manifest_file_path, "r", encoding="utf-8") as file:
-            content = file.read()
+    with open(manifest_file_path, "r", encoding="utf-8") as file:
+        content = file.read()
         
-        # Parse the XML using lxml
-        tree = etree.HTML(content)
+    tree = etree.HTML(content)
 
-        # Find the ContentProtection element
-        nsmap = {'cenc': 'urn:mpeg:cenc:2013'}
-        cp_elements = tree.xpath('//ContentProtection', namespaces={'': 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'})
-        if not cp_elements:
-            logging.error("No ContentProtection elements found in the manifest.")
-            return None
-        
-        # Extract PSSH data
-        for cp in cp_elements:
-            scheme_id_uri = cp.get('schemeIdUri')
-            if scheme_id_uri == 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed':
-                pssh_elements = cp.xpath('.//cenc:pssh', namespaces=nsmap)
-                if not pssh_elements:
-                    logging.error("No pssh elements found in ContentProtection.")
+    nsmap = {'cenc': 'urn:mpeg:cenc:2013'}
+    cp_elements = tree.xpath('//ContentProtection', namespaces={'': 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'})
+    if not cp_elements:
+        logging.error("No ContentProtection elements found in the manifest.")
+        return None
+    
+    # Extract PSSH data
+    for cp in cp_elements:
+        scheme_id_uri = cp.get('schemeIdUri')
+        if scheme_id_uri == 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed':
+            pssh_elements = cp.xpath('.//cenc:pssh', namespaces=nsmap)
+            if not pssh_elements:
+                logging.error("No pssh elements found in ContentProtection.")
+                return None
+            
+            for pssh in pssh_elements:
+                pssh_data = pssh.text
+                if not pssh_data:
+                    logging.error("No PSSH data found in pssh element.")
                     return None
                 
-                for pssh in pssh_elements:
-                    pssh_data = pssh.text
-                    if not pssh_data:
-                        logging.error("No PSSH data found in pssh element.")
-                        return None
-                    
-                    logging.info(f"PSSH Data: {pssh_data}")
-                    return pssh_data
-
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return None
+                logging.info(f"PSSH Data: {pssh_data}")
+                return pssh_data
 
         
 def clear_screen():

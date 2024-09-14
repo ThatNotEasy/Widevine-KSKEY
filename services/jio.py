@@ -1,0 +1,28 @@
+def get_headers():
+    headers = {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9,ms;q=0.8',
+        'accesstoken': 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImF1dGhUb2tlbklkIjoiNTI4NWVlYTAtMTg2Zi00YzdlLTkxZTYtNjE2NDc3YjBmZTI4IiwidXNlcklkIjoiYjhjYmRmZTQtZTkyMy00NDlhLTk4MTgtZmI4OTBkOGE1OGRmIiwidXNlclR5cGUiOiJOT05KSU8iLCJvcyI6IndlYiIsImRldmljZVR5cGUiOiJwYyIsImFjY2Vzc0xldmVsIjoiOSIsImRldmljZUlkIjoiNjQ0MDcxNzgtZDIyNi00OTU2LWJhMjAtZTZjM2MwOGYxMjk3IiwiZXh0cmEiOiJ7XCJudW1iZXJcIjpcIlVIbmErVVZFOGxHNDV2cnR3eDBQZ2tkeHdUMXBzQ0NJWHNLa0NKemZVTXBjc0RUSi9kWFV4aUk9XCIsXCJhZHNcIjpcInllc1wiLFwicGxhbmRldGFpbHNcIjp7XCJhZHNcIjpcInllc1wiLFwiUGFja2FnZUluZm9cIjpbe1wicGxhbmlkXCI6XCJwbGFuLTQ0MWIwMWU2LWNhZTktNDVhYy1hNzcyLTAwNDVjZjE0Yzg3NlwiLFwic3Vic2NyaXB0aW9uc3RhcnRcIjoxNzI0NTc0NDM3MzczLFwic3Vic2NyaXB0aW9uZW5kXCI6MTcyNzU2OTc5OTk5OSxcInBsYW50eXBlXCI6XCJwcmVtaXVtXCIsXCJidXNpbmVzc1R5cGVcIjpcIlByZW1pdW1cIixcImluU3RyZWFtQWRzXCI6XCJFbmFibGVcIixcImRpc3BsYXlBZHNcIjpcIkVuYWJsZVwiLFwiaXNhY3RpdmVcIjp0cnVlLFwibm90ZXNcIjpcIlwiLFwicGxhbkRldGFpbHNcIjp7XCJmZWF0dXJlXCI6e1widmFsdWVcIjp7XCJBZHNDb25maWdcIjp7XCJkaXNwbGF5QWRzXCI6e1wibWFzdGhlYWRcIjp0cnVlLFwiYmFubmVyQWRzXCI6e1wiaW5CZXR3ZWVuVHJheUFkc1wiOnRydWUsXCJiZWxvd1BsYXllckFkc1wiOnRydWV9fSxcImluc3RyZWFtQWRzXCI6e1wibGl2ZVwiOntcInByZVJvbGxcIjp0cnVlLFwibWlkUm9sbFwiOnRydWV9LFwidm9kXCI6e1wicHJlUm9sbFwiOmZhbHNlLFwibWlkUm9sbFwiOmZhbHNlfX19fX19fV19LFwialRva2VuXCI6XCJcIixcInVzZXJEZXRhaWxzXCI6XCJaenZNT0ZzS1RWQmdOTGtqYUJWVGJ6SXFHQVI2MlU5a1kxRUFOMHdVMVZHWlM0UExHUVFCbG5KOHgzOHhSR21zS2ZIakNXS2Ird3FCaG1LblpDSGVmNkkvVmFKdmVZSTUxa3pEclRvUkUzdnV5RWZwejZlQzJLWkhpMWtKRk5aaGZGTTV0ak55NmRvVWlpd3RJKzczNm1RckU2Z3Vkc1BiVzVHMkNINU14dz09XCJ9Iiwic3Vic2NyaWJlcklkIjoiIiwiYXBwTmFtZSI6IlJKSUxfSmlvQ2luZW1hIiwiZGVncmFkZWQiOiJmYWxzZSIsImFkcyI6InllcyIsInByb2ZpbGVJZCI6IjkwY2U2ZDBkLThmMDktNDRjZC05MTljLTc1Njk2YmY2ODBmYSIsImFkSWQiOiI2NDQwNzE3OC1kMjI2LTQ5NTYtYmEyMC1lNmMzYzA4ZjEyOTciLCJhZHNDb25maWciOnsiaW5zdHJlYW1BZHMiOnsibGl2ZSI6eyJlbmFibGVkIjp0cnVlfSwidm9kIjp7ImVuYWJsZWQiOmZhbHNlfX19LCJleHBlcmltZW50S2V5Ijp7ImNvbmZpZ0tleSI6IjkwY2U2ZDBkLThmMDktNDRjZC05MTljLTc1Njk2YmY2ODBmYSIsImdyb3VwSWQiOjI1ODh9LCJwcm9maWxlRGV0YWlscyI6eyJwcm9maWxlVHlwZSI6ImFkdWx0IiwiY29udGVudEFnZVJhdGluZyI6IkEifSwidmVyc2lvbiI6MjAyNDAzMDQwLCJjb3VudHJ5IjoiSU4ifSwiZXhwIjoxNzI2Mjg2ODU3LCJpYXQiOjE3MjYyODUwNTd9.S-234mwUxoAUWzgtVr2bjzMf93auuSm84Q7Zukz7BpST-ZPH9UJmUsgJgdLKA6-B_IXo735Bv-kFdUNbmlszbQ',
+        'appname': 'RJIL_JioCinema',
+        'deviceid': '64407178-d226-4956-ba20-e6c3c08f1297',
+        'devicetype': 'Web',
+        'dnt': '1',
+        'isdownload': 'false',
+        'origin': 'https://www.jiocinema.com',
+        'os': 'android',
+        'priority': 'u=1, i',
+        'referer': 'https://www.jiocinema.com/',
+        'sec-ch-ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'cross-site',
+        'uniqueid': 'b8cbdfe4-e923-449a-9818-fb890d8a58df',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'versioncode': '2409091',
+        'x-feature-code': 'ytvjywxwkn',
+        'x-platform': 'Web',
+        'x-playbackid': '3a7a2ad2-8d92-4597-947d-6bf3ea31635e.1',
+    }
+    return headers

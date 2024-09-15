@@ -11,6 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from colorama import Fore
@@ -20,42 +21,53 @@ from http.cookiejar import MozillaCookieJar
 logging = setup_logging()
 
 def bypass_manifest_fetching(url: str) -> Optional[str]:
-    chrome_driver_path = 'modules/chromedriver.exe'
-    extension_path = 'modules/manifest_viewer.crx'
-    
+    # Setup Chrome options
     chrome_options = Options()
+    
+    # Add extension if it exists
+    extension_path = 'modules/manifest_viewer.crx'
     if os.path.exists(extension_path):
         chrome_options.add_extension(extension_path)
     else:
         logging.warning(f"Extension file not found at {extension_path}. Skipping extension loading.")
+    
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     
-    service = Service(executable_path=chrome_driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    
-    driver.get(url)
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-    time.sleep(3)  # Adjust sleep time if necessary
-
-    manifest_content = driver.page_source
-    if not manifest_content:
-        logging.error("No content found on manifest page.")
+    try:
+        # Setup WebDriver with WebDriver Manager
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    except Exception as e:
+        logging.error(f"Failed to initialize ChromeDriver: {e}")
         return None
+    
+    try:
+        driver.get(url)
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        time.sleep(3)  # Adjust sleep time if necessary
+
+        manifest_content = driver.page_source
+        if not manifest_content:
+            logging.error("No content found on manifest page.")
+            return None
 
         # Parse the HTML and extract the <body> content
-    tree = html.fromstring(manifest_content)
-    body_content = tree.xpath('//body')[0].text_content()
+        tree = html.fromstring(manifest_content)
+        body_content = tree.xpath('//body')[0].text_content()
 
-    manifest_file_path = "logs/manifest.mpd"
-    os.makedirs('logs', exist_ok=True)
-    with open(manifest_file_path, "w", encoding="utf-8") as file:
-        file.write(body_content)
-        
-    logging.info(f"{Fore.YELLOW}Success - {Fore.GREEN}[200]: Manifest has been bypassed!{Fore.RESET}")
-    print(Fore.MAGENTA + "=" * 120)
-
-    return body_content
+        manifest_file_path = "logs/manifest.mpd"
+        os.makedirs('logs', exist_ok=True)
+        with open(manifest_file_path, "w", encoding="utf-8") as file:
+            file.write(body_content)
+            
+        logging.info("Success - Manifest has been bypassed!")
+        return body_content
+    except Exception as e:
+        logging.error(f"Error fetching or processing the manifest: {e}")
+        return None
+    finally:
+        driver.quit()
         
 def extract_widevine_pssh() -> str:
     manifest_file_path = 'logs/manifest.mpd'
@@ -67,7 +79,7 @@ def extract_widevine_pssh() -> str:
     with open(manifest_file_path, "r", encoding="utf-8") as file:
         content = file.read()
         
-    tree = etree.HTML(content)
+    tree = html.fromstring(content)
 
     nsmap = {'cenc': 'urn:mpeg:cenc:2013'}
     cp_elements = tree.xpath('//ContentProtection', namespaces={'': 'urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed'})

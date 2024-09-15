@@ -7,7 +7,7 @@ from pywidevine.pssh import PSSH
 from pywidevine.device import Device
 from pywidevine.cdm import Cdm
 from services.hbogo import get_license
-from modules.pssh import get_pssh, get_pssh_from_mpd
+from modules.pssh import get_pssh, get_pssh_from_mpd, kid_to_pssh
 from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
 from services.directtv import get_data
 from services import paralelo
@@ -33,7 +33,7 @@ def configure_session(proxies=None):
         session.proxies.update(proxies)
     return session
 
-def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
+def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, kid=None):
     logging.info(f"{Fore.YELLOW}SERVICE: {Fore.GREEN}{service_name}")
     print(Fore.MAGENTA + "=" * 120)
     logging.info(f"{Fore.YELLOW}PSSH: {Fore.RED}{pssh}")
@@ -68,7 +68,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
     else:
         data = get_data_func()
 
-    if not pssh:
+    if not pssh and kid:
+        pssh = kid_to_pssh(kid)
+    elif not pssh:
         logging.error("No PSSH data provided or extracted.")
         return False, None
     
@@ -76,13 +78,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         proxies = used_proxy(proxy)
         session = requests.Session()
         if proxies:
-            if isinstance(proxy, dict):
-                session.proxies.update(proxy)
-            else:
-                session.proxies.update({
-                    'http': proxy,
-                    'https': proxy
-                })
+            session.proxies.update(proxies if isinstance(proxy, dict) else {
+                'http': proxy,
+                'https': proxy
+            })
         
         # Make the request
         if service_name == "prime":
@@ -140,8 +139,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None):
         elif service_name == "paralelo":
             data = paralelo.get_data().get('query')
             response = session.post(url=lic_url, headers=headers, json={'query': data}, proxies=proxies)
-        elif service_name in ["channel5", "mtv"]:
-            response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
+        elif service_name in ["tataplay", "channel5", "mtv"]:
+            response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies, verify=False)
+            print(response.text)
         elif service_name in ["ufc", "swaglive","vtmgo"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
         elif service_name == "videotron":

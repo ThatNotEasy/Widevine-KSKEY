@@ -7,7 +7,7 @@ from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy, used_proxy, read_proxies_from_file
-from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd
+from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd, kid_to_pssh
 from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching
 from modules.license_retrieval import get_license_keys, configure_session
 
@@ -115,30 +115,34 @@ def handle_other_services(args, headers):
 
 def get_pssh_data(args, proxy):
     if args.pssh:
-        # Directly parse and return provided PSSH data
         return pssh_parser(args.pssh)
     
+    if args.kid:
+        logging.info(f"{Fore.YELLOW}KEYID (KID): {Fore.GREEN}{args.kid}{Fore.RESET}")
+        print(Fore.MAGENTA + "=" * 120)
+        pssh = kid_to_pssh(args.kid)
+        if pssh:
+            return pssh
+        else:
+            logging.error("Failed to convert KID to PSSH.")
+            return None
+
     if not args.manifest_url:
         logging.warning("No manifest URL provided.")
         return None
 
-    # Fetch the manifest from the provided URL
     manifest = fetch_manifest(args.manifest_url, proxy)
     if not manifest:
         logging.error("Failed to fetch manifest.")
         return None
 
-    # Determine the manifest type and extract PSSH data
     if '.mpd' in args.manifest_url:
         pssh = extract_kid_and_pssh_from_mpd(manifest)
         if pssh:
             return pssh
-        
-        # Attempt to bypass manifest fetching if PSSH data is not found
         pssh = bypass_manifest_fetching(args.manifest_url)
         if pssh:
             return extract_widevine_pssh()
-        
     
     if '.m3u8' in args.manifest_url:
         return get_pssh_from_m3u8_url(args.manifest_url)

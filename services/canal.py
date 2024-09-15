@@ -3,34 +3,9 @@ def get_cookies():
     return cookies
 
 def get_headers():
-    headers = {
-    'accept': 'application/json, text/plain, */*',
-    'accept-language': 'en-US,en;q=0.9,ms;q=0.8',
-    'content-type': 'application/json',
-    'origin': 'https://www.canalplus.com',
-    'priority': 'u=1, i',
-    'referer': 'https://www.canalplus.com/',
-    'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'cross-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    }
+    headers = {}
     return headers
 
 def get_data():
-    data = {
-    'ServiceRequest': {
-        'InData': {
-            'EpgId': 20586,
-            'LiveToken': 'pr014388c12a8e00054714a8574d40e4bbd481f815a6c00106b05414f40be3a017e76f7ea6fa74bf84c3f9b522d8080d1eac582be42fb878e860277a4349367e6a822281c5f94ccab1ee9bab5acdc9e600828f1e8713453ea84c6a5fd1047fb34a8a20074788aba23eb5c4dcab58679b04e24c3be44f7817b0d9061dfc30d1f40824abe090d882f2129b15b5aaf9eac9f69b566f9236c117749dd59f118fd0c9514f83f80fe18138a39fdce93b286f7d08eaf2056f5b043f2f5d357d112ace9df7446fb5ceeafe7c54b60c5bc37481abaabe4c17f62910c86a8be629d660eab7fab0dcc837fb52fe1a4b964c18f03551ac6bdd57ece47ddeb5ec90972c6fafaf1a105b8265dd97db4473487549004b4425aa3f2f308eb0923a4db1fd056be82617c70e7be715c723d2f41a7025396ac6bff707147d46eb6651c80101041615d87204abd82523c8b804e760cd5cdd23946dea43d495438bf858efefa9f35719eef5ef6f8d0a31d803cf658bc2c36f47a0c1b21772d5f0b9dae2de5289ce392527d1c5b933247a4cc250c76d720a1905b6e5cee968bb6e50eb5704b0923a58403dc8e18c0b1eabcb183c4c2690abc60237057b3f745b8b0339b7baae65b880eb023aa2d4a15b5207c303d598895ef84b6d02c2cdf03f90e8daf737c98956009cc718867ac2ecda0802d6d4c7764bb6682d9f3d08165913f95cbb0044c626c18b871d086343ad044ba9e088f615a2fda192542cb95f96f6db17b0c8af6e25fb7cbbe7f93a8bafb7f16b43925e0d8bae4fb6a48e56ee11d7f46e990ac5ead83d1807e1f438d69e72aade626a0371065f7f757e0c898b7414f85723de54c163d9b4cb446a4102ca748510ddd31ef790f8f76f01f2df4e9185031f9fa2fa86496bc334e3a0c9ca3a868b597ec59dcfb30c257784051c33a6da9171b68aa6d3eea9dfce05655825ff2d86e22204691e1c6a44633a761dde82ccd73e7db68c05d779887609f07731373bda1654275e9f493aea75322851fc2a240be194302586b1c1d567ac09c8b52708a20a1dbe005e77214b50ab7eef69bab571586499742e2affd75373cb5092b39c7edf3de579eb67ae76eb8bd88d534a3221fd9522a3e3bcd73bae7b0f54701b5f8ab9a4ea7374f04f25ed7d488e2d8c71ff1b9f92960073139e75eb8d75f1af9c323b05285fcc92a8a68322abe79a7cd55bfb5fa9b096468da2836c1364989ef53eaa46775b9ba8ab5464ea1ef3f98ac4f4ee912a1bc9f0ecea4ff722e039a981d17e6c8a9812d95cc175f513edb158a0d566b92d6d8eec0a4e42da638ffa86add95e43b660f33278214c2db6d07a0987b89d47da4e84d2dbc85dfc0558756803b1a69b372c627718387395511f7c15b7d174ec9f3f3159e9dd938ff482ccbdeb97d167b46927553f8d770dab57c0d8405b9de279b4ed81c4857e621dcc23ed1ce876fbdbf2f7f3c91037e718dd09a8a2e6e634f568e8f72764625d80f85e2815717496de73fa8b04c2270a19f142ad8ba1c9ef8e0563cb5c08638f544a1c5414cb988b4fb6e26826210e95938857231c12e90734fec5d55aabf342c843193ccdedf481ba5a75ff4d1bd8d4643e2d278645d711fc9a1cc9df72d716f3a453c68a50275fceecbce28881d9b1aa6a47f9901a2ffbb662d8710275da3cd7db9dba9ff00cff018532c17fdcf3dd31d6500edee4df1a52d569f59bf67635b5a045f5dcb6057dae647f8029a4ec4640610028eb2d13ce5fcc90bf0485992674',
-            'UserKeyId': '_ynux0xxae',
-            'DeviceKeyId': '1719179239062-f7a7b04fd4f4',
-            'ChallengeInfo': None,
-            'Mode': 'MKPL',
-        },
-    },
-}
+    data = {}
     return data

@@ -166,6 +166,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         elif service_name == "vdocipher":
             vdo = services.vdocipher.get_data(challenge_b64)
             response = session.post(url=lic_url, headers=headers, json=vdo, proxies=proxies)
+        elif service_name == "polsat":
+            data["params"]["object"] = challenge_b64
+            data = json.dumps(data)
+            response = session.post(url=lic_url, headers=headers, data=data, proxies=proxies)
         else:
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
     
@@ -206,6 +210,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             license_b64 = response.json()["license"]
         elif service_name == "oneplus":
             license_b64 = response.json()["data"]
+        elif service_name == "polsat":
+            licenses = json.loads(response.text)
+            license_b64 = licenses.get("result", {}).get("object", {}).get("license", None)
         else:
             logging.error(f"Service '{service_name}' is not handled.")
             return False, None

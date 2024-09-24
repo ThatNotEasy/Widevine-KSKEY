@@ -49,14 +49,14 @@ class Engine:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def get_proxy(self, tunnels, tls=False):
+    def get_proxy(self, tunnels, tls=False): 
         protocol = "https" if tls else "http"
         try:
             login_credentials = f"user-uuid-{self.settings.user_uuid}"
             for ip_address, port_details in tunnels["ip_list"].items():
                 proxy_url = f"{protocol}://{login_credentials}:{tunnels['agent_key']}@{ip_address}:{port_details}"
                 logging.debug(f"Generated proxy URL: {proxy_url}")
-                return proxy_url
+                return used_proxy(proxy_url)  # Use used_proxy here
         except KeyError as e:
             logging.error(f"Key missing when generating proxy URL: {e}")
             raise
@@ -88,7 +88,7 @@ class Engine:
             logging.error(f"Key error: {e}")
             raise
 
-    def zgettunnels(self, session_key: str, country: str, timeout: float = 10.0) -> json:
+    def zgettunnels(self, session_key: str, country: str, timeout: float = 10.0) -> dict:
         qs = {
             "country": country.lower(),
             "limit": 1,
@@ -236,3 +236,19 @@ def used_proxy(proxy):
     elif isinstance(proxy, str):
         return {'http': proxy, 'https': proxy}
     return {}
+
+def configure_session(proxy):
+    session = requests.Session()
+    if proxy:
+        session.proxies.update(proxy)
+    return session
+
+def get_tunnel_and_setup_proxy(session_key, country):
+    tunnels = Engine.zgettunnels(session_key, country)
+    if tunnels:
+        proxy_url = Engine.get_proxy(tunnels)
+        if proxy_url:
+            working_proxies = used_proxy(proxy_url)
+            session = configure_session(working_proxies)
+            return session
+    return None

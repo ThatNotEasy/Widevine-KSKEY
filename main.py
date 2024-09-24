@@ -13,7 +13,6 @@ from modules.license_retrieval import get_license_keys, configure_session
 
 logging = setup_logging()
 config = load_configurations()
-session = requests.Session()
 
 def setup_proxy(args):
     proxies = []
@@ -27,7 +26,7 @@ def setup_proxy(args):
             return {}
 
     elif proxy_method == "scrape":
-        if country_code and country_code in allowed_countries:
+        if country_code in allowed_countries:
             logging.info(f"{Fore.YELLOW}Using {Fore.GREEN}scrape {Fore.YELLOW}proxy method for country: {Fore.GREEN}{country_code}.{Fore.RESET}")
             print(Fore.MAGENTA + "=" * 120)
             proxy_url = proxyscrape(country_code)
@@ -58,22 +57,31 @@ def setup_proxy(args):
             logging.info(f"{Fore.YELLOW}Using provided proxy: {Fore.GREEN}{args.proxy}{Fore.RESET}")
             print(Fore.MAGENTA + "=" * 120)
             proxy_url = args.proxy
-            if proxy_url.startswith('socks'):
-                proxies.append(proxy_url)
-            else:
-                proxies.append(proxy_url)
+            proxies.append(used_proxy(proxy_url) if proxy_url.startswith('socks') else used_proxy({'http': proxy_url, 'https': proxy_url}))
 
     working_proxies = {}
     for proxy in proxies:
         test_proxy = used_proxy(proxy)
+        logging.info(f"Testing proxy: {test_proxy}")
+        print(Fore.MAGENTA + "=" * 120)
+        if not test_proxy:
+            logging.warning(f"Invalid proxy format: {proxy}")
+            continue
+        
         session = configure_session(test_proxy)
         try:
             response = session.get('https://httpbin.org/ip', timeout=5)
             if response.status_code == 200:
+                logging.info(f"Working proxy found: {test_proxy}")
                 working_proxies = test_proxy
-                break
-        except requests.RequestException:
+                break  # Exit the loop if a working proxy is found
+        except requests.RequestException as e:
+            logging.error("No working proxies found.")
+            print(Fore.MAGENTA + "=" * 120)
             continue
+            
+    if not working_proxies:
+        pass
     return working_proxies
 
 

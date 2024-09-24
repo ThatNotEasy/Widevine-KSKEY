@@ -27,10 +27,10 @@ def load_first_wvd_file(directory="device"):
     else:
         logging.error("No .wvd files found in the directory.")
 
-def configure_session(proxies=None):
+def configure_session(proxy):
     session = requests.Session()
-    if proxies:
-        session.proxies.update(proxies)
+    if proxy:
+        session.proxies.update(proxy)
     return session
 
 def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, kid=None):
@@ -126,7 +126,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             manifest_url = vod_request['asset']['endpoints'][0]['url']
             pssh = get_pssh(manifest_url)
             response = session.post(url=license_url, headers=headers, data=challenge_bytes, proxies=proxies)
-        elif service_name in ["virgintv","udemy"]:
+        elif service_name in ["emocje", "virgintv","udemy"]:
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
         elif service_name in ["oneplus","tfc"]:
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
@@ -161,7 +161,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             response = session.post(url=lic_url, headers=headers, cookies=cookies, data=challenge_bytes, proxies=proxies)
         elif service_name in ["exxen", "hotstar", "mewatch"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
-        elif service_name == "itv":
+        elif service_name in ["fubo","itv"]:
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
         elif service_name == "vdocipher":
             vdo = services.vdocipher.get_data(challenge_b64)
@@ -204,7 +204,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
         elif service_name == "paralelo":
             license_b64 = response.json()["data"]["drm_license"]["license"]
-        elif service_name in ["ufc", "cignal","mtv","ivi","swaglive", "starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
+        elif service_name in ["emocje","fubo","ufc", "cignal","mtv","ivi","swaglive", "starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
             license_b64 = b64encode(response.content).decode()
         elif service_name in ["vtmgo", "videotron"]:
             license_b64 = response.json()["license"]

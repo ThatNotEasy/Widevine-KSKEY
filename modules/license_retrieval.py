@@ -103,8 +103,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxies)
         elif service_name in ["filmo", "viaplay", "peacock", "viki", "paramountplus", "crunchyroll", "hbomax"]:
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
-        elif service_name in ["ivi","dazn","unifi"]:
+        elif service_name in ["preladder", "ivi","dazn","unifi"]:
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
+            print(response.content)
         elif service_name == "rakuten":
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
         elif service_name in ["jio","cignal"]:
@@ -142,8 +143,9 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         elif service_name in ["tataplay", "channel5", "mtv"]:
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies, verify=False)
             print(response.text)
-        elif service_name in ["ufc", "swaglive","vtmgo"]:
+        elif service_name in ["rugbytv", "ufc", "swaglive","vtmgo"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
+            print(response.text)
         elif service_name == "videotron":
             data_dict = json.loads(data)
             json_data = json.dumps(data_dict)

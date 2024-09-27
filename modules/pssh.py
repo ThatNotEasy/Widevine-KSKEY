@@ -76,7 +76,7 @@ def extract_kid_and_pssh_from_mpd(manifest):
         return None
 
 def kid_to_pssh(kid):
-    url = "https://dev.kepala-pantas.xyz/dev/widevine/kid_to_pssh"
+    url = "http://127.0.0.1:1337/dev/widevine/kid_to_pssh"
     data = {"kid": kid}
     response = requests.post(url, json=data)
     pssh = response.json()["responseData"]["pssh"]

@@ -87,14 +87,16 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         if service_name == "prime":
             data['widevine2Challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxies)
+            print(response.content)
         elif service_name in ["astro", "music-amz"]:
             data['licenseChallenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxies)
         elif service_name == "apple":
             data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, json=data, proxies=proxies)
-        elif service_name in ["sooka","tonton", "roku", "toggo"]:
+        elif service_name in ["ppv", "sooka","tonton", "roku", "toggo"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
+            print(response.content)
         elif service_name == "youku":
             data["licenseRequest"] = b64decode(challenge_bytes)
             response = session.post(url=lic_url, headers=headers, data=data, proxies=proxies)

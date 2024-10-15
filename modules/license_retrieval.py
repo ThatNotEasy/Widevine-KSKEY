@@ -87,8 +87,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         if service_name == "prime":
             data['widevine2Challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, json=data, proxies=proxies)
-            print(response.content)
-        elif service_name in ["astro", "music-amz"]:
+        elif service_name in ["astro", "music-amz", "audible"]:
             data['licenseChallenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, cookies=cookies, json=data, proxies=proxies)
         elif service_name == "apple":
@@ -107,7 +106,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
         elif service_name in ["preladder", "ivi","dazn","unifi"]:
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
-            print(response.content)
         elif service_name == "rakuten":
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
         elif service_name in ["jio","cignal"]:
@@ -174,6 +172,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             data["params"]["object"] = challenge_b64
             data = json.dumps(data)
             response = session.post(url=lic_url, headers=headers, data=data, proxies=proxies)
+        elif service_name == "polsat":
+            data["params"]["object"] = challenge_b64
+            data = json.dumps(data)
+            response = session.post(url=lic_url, headers=headers, data=data, proxies=proxies)
         else:
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
     
@@ -210,7 +212,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             license_b64 = response.json()["data"]["drm_license"]["license"]
         elif service_name in ["emocje","fubo","ufc", "cignal","mtv","ivi","swaglive", "starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
             license_b64 = b64encode(response.content).decode()
-        elif service_name in ["vtmgo", "videotron"]:
+        elif service_name in ["vtmgo", "videotron", "audible"]:
             license_b64 = response.json()["license"]
         elif service_name == "oneplus":
             license_b64 = response.json()["data"]

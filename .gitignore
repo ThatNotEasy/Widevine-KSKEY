@@ -24,3 +24,4 @@ logs
 # Ignore cookies
 
 logs/logfile.log
+logs/logfile.log

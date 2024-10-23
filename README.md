@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-To use WKSKEY-2.0, specify the Widevine license URL and other options through command-line arguments. Here's a basic usage example:
+To use WKSKEY-2.0, specify the Widevine license URL and other options through command-line arguments. Create a new directory named `device` and place the `.wvd` CDM file in that directory. Refer to [KeyDive](https://github.com/hyugogirubato/KeyDive) for more information.
 
 ## Basic:
 ```bash

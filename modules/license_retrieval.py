@@ -93,9 +93,8 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         elif service_name == "apple":
             data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, json=data, proxies=proxies)
-        elif service_name in ["ppv", "sooka","tonton", "roku", "toggo"]:
+        elif service_name in ["byutv", "moviestar", "ppv", "sooka","tonton", "roku", "toggo"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
-            print(response.content)
         elif service_name == "youku":
             data["licenseRequest"] = b64decode(challenge_bytes)
             response = session.post(url=lic_url, headers=headers, data=data, proxies=proxies)
@@ -210,7 +209,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             license_b64 = response.json()["ServiceResponse"]["OutData"]["LicenseInfo"]
         elif service_name == "paralelo":
             license_b64 = response.json()["data"]["drm_license"]["license"]
-        elif service_name in ["emocje","fubo","ufc", "cignal","mtv","ivi","swaglive", "starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
+        elif service_name in ["byutv", "moviestar", "emocje","fubo","ufc", "cignal","mtv","ivi","swaglive", "starzon", "roku", "tfc","exxen", "mewatch","todtv", "channel5", "hotstar", "amateurtv", "itv", "tvdmm"]:
             license_b64 = b64encode(response.content).decode()
         elif service_name in ["vtmgo", "videotron", "audible"]:
             license_b64 = response.json()["license"]

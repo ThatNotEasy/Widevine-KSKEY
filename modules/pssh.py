@@ -25,7 +25,7 @@ def used_proxy(proxy):
 
 def fetch_manifest(url, proxy):
     logging.info(f"{Fore.YELLOW}MANIFEST: {Fore.RED}{url}{Fore.RESET}")
-    print(Fore.MAGENTA + "=============================================================================================================")
+    print(Fore.MAGENTA + "=============================================================================================================\n")
 
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"}
     session = used_proxy(proxy)
@@ -241,7 +241,7 @@ def fetch_manifest_with_retry(url, proxy=None, retries=3, backoff_factor=2):
 
 def amz_pssh(url, proxy=None):
     logging.info(f"{Fore.YELLOW}Fetching manifest from URL: {Fore.RED}{url}{Fore.RESET}")
-    print(Fore.MAGENTA + "=============================================================================================================")
+    print(Fore.MAGENTA + "=============================================================================================================\n")
     system_id = "edef8ba9-79d6-4ace-a3c8-27dcd51d21ed"
     response = requests.get(url, proxies=proxy)
     response.raise_for_status()

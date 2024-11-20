@@ -7,9 +7,9 @@ from modules.logging import setup_logging
 from modules.config import load_configurations
 from modules.arg_parser import parse_arguments
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy, used_proxy, read_proxies_from_file
-from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, pssh_parser, extract_kid_and_pssh_from_mpd, kid_to_pssh
-from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching
-from modules.license_retrieval import get_license_keys, configure_session
+from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, extract_kid_and_pssh_from_mpd, kid_to_pssh
+from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching, is_token_valid
+from modules.license_retrieval import get_license_keys, configure_session, handle_learnyst_service
 
 logging = setup_logging()
 config = load_configurations()
@@ -89,10 +89,10 @@ def main():
     init(autoreset=True)
     clear_screen()
     print_title('Widevine-KSKEY')
-    args = parse_arguments()
 
+    args = parse_arguments()
     headers = parse_headers(args.header)
-    
+
     if args.downloads and args.manifest_url:
         proxy = setup_proxy(args)
         output_name = args.output if args.output else "default"
@@ -109,54 +109,45 @@ def main():
 
 def handle_other_services(args, headers):
     proxy = setup_proxy(args)
-    pssh = get_pssh_data(args, proxy)
-    if not pssh:
-        logging.error("No PSSH data provided or extracted.")
-        sys.exit(1)
+    pssh = None
+    if args.kid:
+        logging.info(f"{Fore.YELLOW}KEYID (KID): {Fore.GREEN}{args.kid}{Fore.RESET}")
+        pssh = kid_to_pssh(args.kid)
+        if not pssh:
+            logging.error("Failed to convert KID to PSSH.")
+            sys.exit(1)
+
+    elif args.manifest_url:
+        manifest = fetch_manifest(args.manifest_url, proxy)
+        if not manifest:
+            logging.error("Failed to fetch manifest.")
+            sys.exit(1)
+
+        if '.mpd' in args.manifest_url:
+            pssh = extract_kid_and_pssh_from_mpd(manifest)
+            if not pssh:
+                pssh = bypass_manifest_fetching(args.manifest_url)
+                if not pssh:
+                    logging.error("Failed to extract PSSH from MPD manifest.")
+                    sys.exit(1)
+        
+        elif '.m3u8' in args.manifest_url:
+            pssh = get_pssh_from_m3u8_url(args.manifest_url)
+            if not pssh:
+                logging.error("Failed to extract PSSH from M3U8 URL.")
+                sys.exit(1)
+                
+        elif args.manifest_url and args.service == "learnyst":
+            handle_learnyst_service(manifest_url=args.manifest_url, lr_token=args.lr_token)
+        else:
+            logging.error("Unsupported manifest type.")
+            sys.exit(1)
 
     keys = get_license_keys(pssh, args.license_url, args.service, args.content_id or args.manifest_url, proxy)
-    
     if keys:
         proceed_with_download(args, keys, proxy, headers)
     else:
-        pass
-
-def get_pssh_data(args, proxy):
-    if args.pssh:
-        return pssh_parser(args.pssh)
-    
-    if args.kid:
-        logging.info(f"{Fore.YELLOW}KEYID (KID): {Fore.GREEN}{args.kid}{Fore.RESET}")
-        print(Fore.MAGENTA + "=" * 120)
-        pssh = kid_to_pssh(args.kid)
-        if pssh:
-            return pssh
-        else:
-            logging.error("Failed to convert KID to PSSH.")
-            return None
-
-    if not args.manifest_url:
-        logging.warning("No manifest URL provided.")
-        return None
-
-    manifest = fetch_manifest(args.manifest_url, proxy)
-    if not manifest:
-        logging.error("Failed to fetch manifest.")
-        return None
-
-    if '.mpd' in args.manifest_url:
-        pssh = extract_kid_and_pssh_from_mpd(manifest)
-        if pssh:
-            return pssh
-        pssh = bypass_manifest_fetching(args.manifest_url)
-        if pssh:
-            return extract_widevine_pssh()
-    
-    if '.m3u8' in args.manifest_url:
-        return get_pssh_from_m3u8_url(args.manifest_url)
-    
-    logging.warning("Unsupported manifest URL type.")
-    return None
+        logging.error("No valid license keys obtained. Cannot proceed with download.")
 
 def proceed_with_download(args, keys, proxy, headers):
     print_license_keys(keys)

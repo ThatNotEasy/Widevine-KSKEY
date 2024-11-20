@@ -5,8 +5,8 @@ import pyfiglet
 from colorama import Fore, Style
 import importlib
 from modules.logging import setup_logging
-import requests, random, os, re, time
-from lxml import html, etree
+import requests, os, time
+from lxml import html
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -15,8 +15,14 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from colorama import Fore
-from bs4 import BeautifulSoup
-from http.cookiejar import MozillaCookieJar
+import glob
+import json
+import logging
+from os import remove
+from os.path import exists, join
+from urllib.parse import urlparse
+
+import requests
 
 logging = setup_logging()
 
@@ -160,3 +166,45 @@ def get_service_module(service_name):
     except ImportError:
         logging.error(f"No module named '{service_name}' found in 'services' package")
         sys.exit(1)
+        
+# ======================================================================================================================================================= #
+
+def handle(result, error: str):
+    if not bool(result):
+        logging.error(error)
+        exit(1)
+
+
+def ensure_list(element: dict | list):
+    if isinstance(element, dict):
+        return [element]
+    return element
+
+
+def is_token_valid(token: str) -> bool:
+    response = requests.get(
+        'https://api.learnyst.com/learner/v4/stats',
+        headers={
+            'Authorization': f'Bearer {token}'
+        }
+    )
+    return response.status_code == 200
+
+
+def try_parse(to_parse: str):
+    try:
+        return json.loads(to_parse)
+    except Exception:
+        pass
+
+
+def remove_query(url: str) -> str:
+    parsed = urlparse(url)
+    return parsed.scheme + "://" + parsed.netloc + parsed.path
+
+
+def clean(files: list):
+    for file in files:
+        for globs in glob.glob(file):
+            if exists(globs):
+                remove(globs)

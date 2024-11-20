@@ -1,25 +1,25 @@
-import re, requests, glob, os, base64, json, httpx, urllib3, cloudscraper, services.vdocipher, socks
-from urllib.parse import quote
+import requests, glob, os, base64, json, urllib3, services.vdocipher
 from base64 import b64encode, b64decode
-from modules.utils import get_service_module
+from modules.utils import get_service_module, is_token_valid
 from modules.proxy import used_proxy
 from pywidevine.pssh import PSSH
 from pywidevine.device import Device
 from pywidevine.cdm import Cdm
 from services.hbogo import get_license
-from modules.pssh import get_pssh, get_pssh_from_mpd, kid_to_pssh
-from services.skyshowtime import get_user_token, get_vod_request, calculate_signature
-from services.directtv import get_data
+from modules.pssh import get_pssh_from_mpd, kid_to_pssh
+from services.skyshowtime import get_user_token, get_vod_request
 from services import paralelo
 from colorama import Fore
-from requests.adapters import HTTPAdapter
 from modules.logging import setup_logging
 from modules.proxy import used_proxy
-
+from services.learnyst import ConfigManager, Learnyst, PlayerManager
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging = setup_logging()
-
+cf = ConfigManager()
+cf.initialize()
+    
+    
 def load_first_wvd_file(directory="device"):
     wvd_files = glob.glob(os.path.join(directory, '*.wvd'))
     if wvd_files:
@@ -70,9 +70,10 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
 
     if not pssh and kid:
         pssh = kid_to_pssh(kid)
-    elif not pssh:
-        logging.error("No PSSH data provided or extracted.")
-        return False, None
+        
+    if service_module == "learnyst":
+        print(service_module)
+        
     
     try:
         proxies = used_proxy(proxy)
@@ -93,7 +94,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         elif service_name == "apple":
             data['streaming-request']['streaming-keys'][0]['challenge'] = challenge_b64
             response = session.post(url=lic_url, headers=headers, json=data, proxies=proxies)
-        elif service_name in ["byutv", "moviestar", "ppv", "sooka","tonton", "roku", "toggo"]:
+        elif service_name in ["byutv", "moviestar", "ppv", "sooka","tonton", "roku", "toggo", "videoland"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies)
         elif service_name == "youku":
             data["licenseRequest"] = b64decode(challenge_bytes)
@@ -109,7 +110,6 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             response = session.post(url=lic_url, headers=headers, params=params, data=challenge_bytes, proxies=proxies)
         elif service_name in ["jio","cignal"]:
             response = session.post(url=lic_url, headers=headers, data=challenge_bytes, proxies=proxies, verify=False)
-            print(response.text)
         elif service_name == "starzon":
             decoded_bytes = base64.b64decode(challenge_b64)
             data["drm_info"] = list(decoded_bytes)
@@ -119,13 +119,14 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         elif service_name == "skyshowtime":
             token_url = 'https://ovp.skyshowtime.com/auth/tokens'
             vod_url = 'https://ovp.skyshowtime.com/video/playouts/vod'
-            region = cookies['activeTerritory']
+            region = cookies.get('activeTerritory')
             user_token = get_user_token(token_url, cookies, region)
-            vod_request = get_vod_request(vod_url, region, user_token, content_id)
-            license_url = vod_request['protection']['licenceAcquisitionUrl']
-            manifest_url = vod_request['asset']['endpoints'][0]['url']
-            pssh = get_pssh(manifest_url)
-            response = session.post(url=license_url, headers=headers, data=challenge_bytes, proxies=proxies)
+            video_url = content_id
+            vod_request = get_vod_request(vod_url, region, user_token, video_url)
+            license_url = vod_request.get('protection', {}).get('licenceAcquisitionUrl')
+            manifest_url = vod_request.get('asset', {}).get('endpoints', [{}])[0].get('url')
+            pssh = get_pssh_from_mpd(manifest_url)
+            response = session.post(url=license_url, headers=headers, cookies=cookies, data=challenge_bytes, proxies=proxy)
         elif service_name in ["emocje", "virgintv","udemy"]:
             response = session.post(url=lic_url, headers=headers, params=params, cookies=cookies, data=challenge_bytes, proxies=proxies)
         elif service_name in ["oneplus","tfc"]:
@@ -195,7 +196,7 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
             license_b64 = b64encode(response_data_bytes).decode()
         elif service_name in ["sooka", "mubi", "dazn", "vdocipher", "newsnow", "beinsports", "viaplay", "peacock"]:
             license_b64 = b64encode(response.content).decode()
-        elif service_name in ["music-amz", "crunchyroll"]:
+        elif service_name in ["music-amz", "crunchyroll", "videoland"]:
             license_b64 = response.json()["license"]
         elif service_name == "filmo":
             license_b64 = base64.b64encode(response.content)
@@ -236,3 +237,38 @@ def get_license_keys(pssh, lic_url, service_name, content_id=None, proxy=None, k
         logging.info(f"{Fore.YELLOW}Status: {Fore.RED}{e}{Fore.RESET}")
         print(Fore.MAGENTA + "=" * 120)
         
+        
+def handle_learnyst_service(manifest_url, lr_token=None):
+    """
+    Handle license retrieval for Learnyst service.
+    """
+    if not lr_token:
+        lr_token = cf.simple_get("lrToken")
+        if not lr_token:
+            lr_token = input("[INFO] lrToken/authToken: ")
+            cf.simple_set("lrToken", lr_token)
+    
+    logging.info("Injecting exports into player...")
+    player_manager = PlayerManager(token=lr_token, version=455, lc=50, player_file='player.js')
+    
+    if not player_manager.get_player():
+        logging.error("Unable to request player")
+        return False
+    if not player_manager.inject_exports():
+        logging.error("Unable to inject exports")
+        return False
+
+    logging.info("Verifying token...")
+    if not is_token_valid(lr_token):
+        logging.error("Token expired, please re-enter")
+        cf.simple_set("lrToken", None)
+        return False
+
+    if not manifest_url:
+        logging.error("Manifest URL not provided for Learnyst download.")
+        return False
+
+    logging.info(f"Starting Learnyst download with manifest URL: {manifest_url}")
+    learnyst = Learnyst(url=manifest_url, token=lr_token)
+    learnyst.download()
+    return True

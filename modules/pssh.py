@@ -84,21 +84,44 @@ def kid_to_pssh(kid):
 
 def get_pssh(url: str, proxy=None) -> Optional[str]:
     try:
+        # Fetch the manifest based on the URL type (MPD or M3U8)
         manifest = fetch_manifest(url, proxy)
+        if not manifest:
+            logging.error(f"Failed to fetch manifest from: {url}")
+            return None
+
+        # Handling .mpd file URLs
         if '.mpd' in url:
             pssh = extract_kid_and_pssh_from_mpd(manifest)
             if pssh:
+                # Return PSSH in Base64 format after re-encoding
                 pssh_encoded = base64.b64encode(base64.b64decode(pssh)).decode('utf-8')
+                logging.info(f"Successfully extracted PSSH from MPD: {pssh_encoded[:50]}...")  # Log part of the encoded PSSH for verification
                 return pssh_encoded
+            else:
+                logging.error("Failed to extract PSSH from MPD manifest.")
+                return None
+
+        # Handling .m3u8 file URLs
         elif '.m3u8' in url:
             m3u8_obj = fetch_m3u8(url)
+            if not m3u8_obj:
+                logging.error(f"Failed to fetch M3U8 from URL: {url}")
+                return None
             pssh = extract_pssh_from_m3u8(m3u8_obj)
             if pssh:
+                logging.info(f"Successfully extracted PSSH from M3U8: {pssh[:50]}...")  # Log part of the PSSH
                 return pssh
+            else:
+                logging.error("Failed to extract PSSH from M3U8 manifest.")
+                return None
+
+        # If the manifest URL type is unsupported
         logging.error("Unsupported manifest type or failed extraction.")
         return None
+
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logging.error(f"An error occurred while processing the PSSH extraction: {e}")
         return None
 
 def get_pssh_from_mpd(manifest_url, proxy=None):
@@ -110,45 +133,40 @@ def get_pssh_from_mpd(manifest_url, proxy=None):
         mpd = json.loads(json.dumps(xml))
         periods = mpd.get('MPD', {}).get('Period', [])
     except Exception as e:
-        pssh = input(f'\nUnable to find PSSH in MPD: {e}. \nEdit getPSSH.py or enter PSSH manually: ')
-        return pssh
+        logging.error(f"Error: Unable to fetch or parse MPD manifest: {e}")
+        return input("Please enter PSSH manually: ")
+
+    if not isinstance(periods, list):
+        periods = [periods]
 
     try:
-        if isinstance(periods, list):
-            for period in periods:
-                if isinstance(period.get('AdaptationSet', []), list):
-                    for ad_set in period['AdaptationSet']:
-                        if ad_set.get('@mimeType') == 'video/mp4':
-                            try:
-                                for t in ad_set.get('ContentProtection', []):
-                                    if t.get('@schemeIdUri', '').lower() == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed":
-                                        pssh = t.get("cenc:pssh", '')
-                            except Exception:
-                                pass
-                else:
-                    ad_set = period.get('AdaptationSet', {})
-                    if ad_set.get('@mimeType') == 'video/mp4':
-                        try:
-                            for t in ad_set.get('ContentProtection', []):
-                                if t.get('@schemeIdUri', '').lower() == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed":
-                                    pssh = t.get("cenc:pssh", '')
-                        except Exception:
-                            pass
-        else:
-            ad_set = periods.get('AdaptationSet', {})
-            if ad_set.get('@mimeType') == 'video/mp4':
-                try:
-                    for t in ad_set.get('ContentProtection', []):
-                        if t.get('@schemeIdUri', '').lower() == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed":
-                            pssh = t.get("cenc:pssh", '')
-                except Exception:
-                    pass
-    except Exception:
-        pass
+        for period in periods:
+            adaptation_sets = period.get('AdaptationSet', [])
+            if not isinstance(adaptation_sets, list):
+                adaptation_sets = [adaptation_sets]
+            
+            for ad_set in adaptation_sets:
+                if ad_set.get('@mimeType') == 'video/mp4':
+                    content_protections = ad_set.get('ContentProtection', [])
+                    if not isinstance(content_protections, list):
+                        content_protections = [content_protections]
+                    
+                    for content_protection in content_protections:
+                        if content_protection.get('@schemeIdUri', '').lower() == "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed":
+                            pssh = content_protection.get("cenc:pssh", '')
+                            if pssh:
+                                break
+                    if pssh:
+                        break
+            if pssh:
+                break
+    except Exception as e:
+        logging.error(f"Error parsing MPD content: {e}")
     
-    if pssh == '':
-        pssh = input('Unable to find PSSH in MPD. Edit getPSSH.py or enter PSSH manually: ')
+    if not pssh:
+        pssh = input("Unable to find PSSH in MPD. Please enter PSSH manually: ")
     return pssh
+
 
 def pssh_parser(base64_pssh):
     try:

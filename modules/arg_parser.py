@@ -14,6 +14,7 @@ def parse_arguments():
     parser.add_argument('-p', '--pssh', required=False, help='Protection System Specific Header (PSSH)')
     parser.add_argument('-s', '--service', required=False, help='Specify the service module (e.g., prime, netflix)')
     parser.add_argument('-k', '--kid', help='KID data')
+    parser.add_argument("-lt", "--lr-token", help="be aware that they'll instantly block your account")
     parser.add_argument('-c', '--content-id', required=False, help='Specify the content id for HBOGO modules')
     parser.add_argument('-d', '--downloads', action='store_true', help='Specify to trigger the download process')
     parser.add_argument('-o', '--output', required=False, help='Specify the content output name')

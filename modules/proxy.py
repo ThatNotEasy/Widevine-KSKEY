@@ -1,7 +1,7 @@
 import requests
 import uuid
 import json
-import random
+import random, os
 from colorama import Fore
 from modules.logging import setup_logging
 
@@ -218,8 +218,23 @@ allowed_countries = [
     "TT", "TV", "TZ", "UA", "UG", "US", "UY", "UZ", "VA", "VC", "VE", "VN", "VU", "WS", "YE", "ZA", "ZM", "ZW"
 ]
 
+def create_default_proxies(filename):
+    # Define default proxies, adjust as needed
+    default_proxies = [
+        'http://101.255.118.89:8080',
+        'http://198.51.100.100:3128'
+    ]
+    
+    # Create the file and write the default proxies if the file does not exist or is empty
+    if not os.path.exists(filename) or os.path.getsize(filename) == 0:
+        with open(filename, 'w') as file:
+            for proxy in default_proxies:
+                file.write(proxy + '\n')
+        print(f"File {filename} created with default proxies.")
+
 def read_proxies_from_file(filename):
     proxies = []
+    create_default_proxies(filename)
     try:
         with open(filename, 'r') as file:
             for line in file:
@@ -229,6 +244,7 @@ def read_proxies_from_file(filename):
     except FileNotFoundError:
         print(f"File {filename} not found.")
     return proxies
+
 
 def used_proxy(proxy):
     if isinstance(proxy, dict):

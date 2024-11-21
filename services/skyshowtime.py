@@ -5,35 +5,40 @@ from urllib.parse import urlparse
 logging = setup_logging()
 
 def get_headers():
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
-    'Accept': '*/*',
-    'Accept-Language': 'en-US,en;q=0.5',
-    # 'Accept-Encoding': 'gzip, deflate, br',
-    'Content-Type': 'application/octet-stream',
-    'DNT': '1',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-site',
-    'Sec-GPC': '1',
-    'Connection': 'keep-alive',
-    'X-Forwarded-For': '89.45.7.28'
-    # Requests doesn't support trailers
-    # 'TE': 'trailers',
-}
+    headers = {}
     return headers
-
-def get_params():
-    params = {}
-    return params
 
 def get_cookies():
     cookies = {}
+    file_path = "cookies/skyshowtime.txt"
+    logging.debug(f"Attempting to open cookie file at: {file_path}")
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                if line.startswith('#') or not line.strip():
+                    logging.debug("Skipping comment or empty line.")
+                    continue
+                parts = line.strip().split('\t')
+                if len(parts) >= 7:
+                    domain = parts[0]
+                    flag = parts[1]
+                    path = parts[2]
+                    secure = parts[3]
+                    expiration = parts[4]
+                    name = parts[5]
+                    value = parts[6]
+                    cookies[name] = value
+                    logging.debug(f"Added cookie: {name}={value} (Domain: {domain}, Path: {path})")
+
+        logging.info(f"Successfully loaded {len(cookies)} cookies from {file_path}")
+
+    except FileNotFoundError:
+        logging.error(f"File not found: '{file_path}'")
+    except Exception as e:
+        logging.error(f"Error reading cookies from '{file_path}': {e}")
+
     return cookies
 
-def get_data():
-    data = ""
-    return data
 
 def calculate_signature(method, url, headers, payload, timestamp=None):
     app_id = 'SKYSHOWTIME-ANDROID-v1'
@@ -70,8 +75,8 @@ def calculate_signature(method, url, headers, payload, timestamp=None):
 
 def get_user_token(token_url, cookies, region):
     headers = {
-        'accept': 'application/vnd.tokens.v1+json',
-        'content-type': 'application/vnd.tokens.v1+json',
+        'Accept': 'application/vnd.playvod.v1+json',
+        'Content-Type': 'application/vnd.playvod.v1+json',
     }
     post_data = {
         "auth": {
@@ -97,7 +102,6 @@ def get_user_token(token_url, cookies, region):
 def get_vod_request(vod_url, region, user_token, video_url):
     content_id = video_url.split("/")[6]
     provider_variant_id = video_url.split("/")[7][:36]
-
     post_data = {
         "providerVariantId": provider_variant_id,
         "device": {
@@ -124,7 +128,7 @@ def get_vod_request(vod_url, region, user_token, video_url):
         'x-skyott-country': region,
         'x-skyott-device': 'MOBILE',
         'x-skyott-platform': 'ANDROID',
-        'x-skyott-proposition': 'NBCUOTT',
+        'x-skyott-proposition': 'SKYSHOWTIME',
         'x-skyott-provider': 'SKYSHOWTIME',
         'x-skyott-territory': region,
         'x-skyott-usertoken': user_token,

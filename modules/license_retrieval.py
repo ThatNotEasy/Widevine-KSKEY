@@ -245,7 +245,7 @@ def handle_learnyst_service(manifest_url, lr_token=None):
     if not lr_token:
         lr_token = cf.simple_get("lrToken")
         if not lr_token:
-            lr_token = input("[INFO] lrToken/authToken: ")
+            lr_token = input(f"{Fore.RED}[INFO]: {Fore.WHITE}lrToken/authToken not found, please re-enter: ")
             cf.simple_set("lrToken", lr_token)
     
     logging.info("Injecting exports into player...")

@@ -274,3 +274,23 @@ def handle_learnyst_service(manifest_url, lr_token=None):
     learnyst = Learnyst(url=manifest_url, token=lr_token)
     learnyst.download()
     return True
+
+class REMOTE_CDM:
+    def __init__(self, apikey):
+        self.pssh = None
+        self.license_b64 = None
+        self.challenge_b64 = None
+        self.session_id = None
+        self.session = requests.Session()
+        self.apikey = apikey
+        
+    def get_challenge(self, pssh):
+        r = requests.post("https://dev.kepala-pantas.xyz/dev/playready/get_challenge", json={"pssh": pssh}, headers={"X-API-KEY": self.apikey})
+        challenge_b64 = r.json()["responseData"]["challenge_b64"]
+        session_id = r.json()["responseData"]["session_id"]
+        return challenge_b64, session_id
+
+    def get_keys(self, license_b64, session_id):
+        r = requests.post("https://dev.kepala-pantas.xyz/dev/playready/get_keys", json={"license_b64": license_b64, "session_id": session_id}, headers={"X-API-KEY": self.apikey})
+        keys = r.json()["responseData"]["keys"]
+        return keys

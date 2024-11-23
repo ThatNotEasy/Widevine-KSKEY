@@ -1,7 +1,7 @@
 import argparse
 import sys
 from colorama import Fore, Style, init
-from modules.utils import print_title
+from modules.utils import banners
 
 # Color Aliases
 R = Fore.RED
@@ -83,9 +83,7 @@ def parse_arguments():
 
 def print_custom_help():
     """Print a custom help message."""
-    print_title("C1pherForge")
-    print("\nC1pherForge 2.3 - A tool for extracting Widevine/PlayReady keys.\n")
-    print("Available Options:")
+    banners()
     print("-" * 100)
     options = [
         (f"{G}-u, --license-url,{FR}", f"{Y}The URL to request the Widevine license.{FR}"),

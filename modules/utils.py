@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 import pyfiglet
 from colorama import Fore, Style
-import importlib
+import importlib, random
 from modules.logging import setup_logging
 import requests, os, time
 from lxml import html
@@ -150,9 +150,24 @@ def get_binary_path(*names: str) -> Optional[Path]:
             return Path(path)
     return None
 
-def print_title(title_text):
-    title = pyfiglet.figlet_format(title_text, font='slant')
-    print(Fore.CYAN + f"{title} " + Fore.RED + "                        https://github.com/thatnoteasy" + Style.RESET_ALL)
+from sys import stdout
+from colorama import Fore
+
+def banners():
+    stdout.write("                                                                                         \n")
+    stdout.write(""+Fore.LIGHTRED_EX +"████████╗ ██████╗  ██████╗ ██╗     ██╗  ██╗ ██╗██████╗       ██╗    ██╗██╗██████╗ ███████╗██████╗ ██╗      █████╗ ██╗   ██╗\n")
+    stdout.write(""+Fore.LIGHTRED_EX +"╚══██╔══╝██╔═████╗██╔═████╗██║     ██║ ██╔╝███║██╔══██╗      ██║    ██║██║██╔══██╗██╔════╝██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝\n")
+    stdout.write(""+Fore.LIGHTRED_EX +"   ██║   ██║██╔██║██║██╔██║██║     █████╔╝ ╚██║██║  ██║█████╗██║ █╗ ██║██║██║  ██║█████╗  ██████╔╝██║     ███████║ ╚████╔╝ \n")
+    stdout.write(""+Fore.LIGHTRED_EX +"   ██║   ████╔╝██║████╔╝██║██║     ██╔═██╗  ██║██║  ██║╚════╝██║███╗██║██║██║  ██║██╔══╝  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝ \n")
+    stdout.write(""+Fore.LIGHTRED_EX +"   ██║   ╚██████╔╝╚██████╔╝███████╗██║  ██╗ ██║██████╔╝      ╚███╔███╔╝██║██████╔╝███████╗██║     ███████╗██║  ██║   ██║   \n")
+    stdout.write(""+Fore.LIGHTRED_EX +"   ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═╝╚═════╝        ╚══╝╚══╝ ╚═╝╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   \n")
+    stdout.write(""+Fore.YELLOW +"═════════════╦═════════════════════════════════╦══════════════════════════════\n")
+    stdout.write(""+Fore.YELLOW   +"╔════════════╩═════════════════════════════════╩═════════════════════════════╗\n")
+    stdout.write(""+Fore.YELLOW   +"║ \x1b[38;2;255;20;147m• "+Fore.GREEN+"AUTHOR             "+Fore.RED+"    |"+Fore.LIGHTWHITE_EX+"   PARI MALAM                                    "+Fore.YELLOW+"║\n")
+    stdout.write(""+Fore.YELLOW   +"╔════════════════════════════════════════════════════════════════════════════╝\n")
+    stdout.write(""+Fore.YELLOW   +"║ \x1b[38;2;255;20;147m• "+Fore.GREEN+"GITHUB             "+Fore.RED+"    |"+Fore.LIGHTWHITE_EX+"   GITHUB.COM/THATNOTEASY                        "+Fore.YELLOW+"║\n")
+    stdout.write(""+Fore.YELLOW   +"╚════════════════════════════════════════════════════════════════════════════╝\n") 
+    print(f"{Fore.YELLOW}[T00LK1D-WIDEPLAY] - {Fore.GREEN}A tool for extracting Widevine & PlayReady Keys. - {Fore.RED}[V2.3] \n{Fore.RESET}")
 
 def print_license_keys(keys):
     for key in keys:

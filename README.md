@@ -1,6 +1,6 @@
-# WKSKEY-2.0
+# T00LK1D-WidePlay
 
-WKSKEY-2.0 is a tool designed to obtain Widevine keys from Media Presentation Description (MPD) URLs. It uses a modular approach to handle various streaming services, allowing users to easily customize and expand its functionality according to their needs.
+T00LK1D-WidePlay is a tool designed to obtain Widevine keys from Media Presentation Description (MPD) URLs. It uses a modular approach to handle various streaming services, allowing users to easily customize and expand its functionality according to their needs.
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -14,7 +14,7 @@ WKSKEY-2.0 is a tool designed to obtain Widevine keys from Media Presentation De
 
 ## Introduction
 
-WKSKEY-2.0 is designed to streamline the process of obtaining Widevine keys required for decrypting DRM-protected content from streaming services. It supports a modular architecture, making it easy to extend functionality to new services.
+T00LK1D-WidePlay is designed to streamline the process of obtaining Widevine keys required for decrypting DRM-protected content from streaming services. It supports a modular architecture, making it easy to extend functionality to new services.
 
 ## Features
 
@@ -24,17 +24,17 @@ WKSKEY-2.0 is designed to streamline the process of obtaining Widevine keys requ
 
 ## Installation
 
-To install WKSKEY-2.0, clone the repository and install the required dependencies:
+To install T00LK1D-WidePlay, clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/WKSKEY-2.0.git
-cd WKSKEY-2.0
+git clone https://github.com/yourusername/T00LK1D-WidePlay.git
+cd T00LK1D-WidePlay
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-To use WKSKEY-2.0, specify the Widevine license URL and other options through command-line arguments. Create a new directory named `device` and place the `.wvd` CDM file in that directory. Refer to [KeyDive](https://github.com/hyugogirubato/KeyDive) for more information.
+To use T00LK1D-WidePlay, specify the Widevine license URL and other options through command-line arguments. Create a new directory named `device` and place the `.wvd` CDM file in that directory. Refer to [KeyDive](https://github.com/hyugogirubato/KeyDive) for more information.
 
 ## Basic:
 ```bash
@@ -72,11 +72,11 @@ To add a new service, create a module in the `services` folder with an implement
 
 ## Contribution
 
-Contributions to WKSKEY-2.0 are greatly appreciated. If you have bug fixes, enhancements, or want to add support for new services, please make a pull request.
+Contributions to T00LK1D-WidePlay are greatly appreciated. If you have bug fixes, enhancements, or want to add support for new services, please make a pull request.
 
 ## License
 
-WKSKEY-2.0 is released under the [MIT License](LICENSE).
+T00LK1D-WidePlay is released under the [MIT License](LICENSE).
 
 ---
 

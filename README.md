@@ -27,7 +27,7 @@ T00LK1D-WidePlay is designed to streamline the process of obtaining Widevine key
 To install T00LK1D-WidePlay, clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/T00LK1D-WidePlay.git
+git clone https://github.com/thatnoteasy/T00LK1D-WidePlay.git
 cd T00LK1D-WidePlay
 pip install -r requirements.txt
 ```

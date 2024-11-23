@@ -8,49 +8,11 @@ from modules.config import load_configurations
 from modules.arg_parser import parse_arguments, print_custom_help
 from modules.proxy import init_proxy, proxyscrape, allowed_countries, rotate_proxy, used_proxy, read_proxies_from_file
 from modules.pssh import fetch_manifest, get_pssh_from_m3u8_url, extract_kid_and_pssh_from_mpd, kid_to_pssh
-from modules.utils import print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching, is_token_valid
+from modules.utils import print_title, print_license_keys, clear_screen, colored_input, parse_headers, extract_widevine_pssh, bypass_manifest_fetching, is_token_valid
 from modules.license_retrieval import get_license_keys, configure_session, handle_learnyst_service
 
 logging = setup_logging()
 config = load_configurations()
-
-def choose_drm():
-    print(Fore.MAGENTA + "=" * 120)
-    print(f"{Fore.CYAN}Please choose a DRM system to use:{Fore.RESET}")
-    print(f"{Fore.YELLOW}[1] {Fore.GREEN}Widevine")
-    print(f"{Fore.YELLOW}[2] {Fore.GREEN}PlayReady")
-    print(Fore.MAGENTA + "=" * 120)
-
-    while True:
-        choice = input(f"Enter your choice (1 or 2): ").strip()
-        if choice == "1":
-            logging.info("DRM selected: Widevine")
-            return "widevine"
-        elif choice == "2":
-            logging.info("DRM selected: PlayReady")
-            return "playready"
-        else:
-            print(f"{Fore.RED}Invalid choice. Please enter 1 for Widevine or 2 for PlayReady.{Fore.RESET}")
-            continue
-
-def choose_cdm():
-    print(Fore.MAGENTA + "=" * 120)
-    print(f"{Fore.CYAN}Please choose a CDM (Content Decryption Module) type:{Fore.RESET}")
-    print(f"{Fore.YELLOW}[1] {Fore.GREEN}Local CDM")
-    print(f"{Fore.YELLOW}[2] {Fore.GREEN}Remote CDM")
-    print(Fore.MAGENTA + "=" * 120)
-
-    while True:
-        choice = input(f"Enter your choice (1 or 2): ").strip()
-        if choice == "1":
-            logging.info("CDM selected: Local")
-            return "local"
-        elif choice == "2":
-            logging.info("CDM selected: Remote")
-            return "remote"
-        else:
-            print(f"{Fore.RED}Invalid choice. Please enter 1 for Local CDM or 2 for Remote CDM.{Fore.RESET}")
-            continue
 
 def setup_proxy(args):
     proxies = []
@@ -124,15 +86,12 @@ def setup_proxy(args):
 
 
 def main():
-    clear_screen()
     init(autoreset=True)
-    
-    # Prompt user for DRM choice
-    selected_drm = choose_drm()
-    selected_cdm = choose_cdm()
+    clear_screen()
     
     if len(sys.argv) == 1:
-        logging.info("No arguments provided. Please use -h for more help.")
+        print_title("C1pherForge")
+        print(f"{Fore.RED}\nNo arguments provided. Use {Fore.YELLOW}-h{Fore.RESET} or {Fore.YELLOW}--help{Fore.RESET} for more help.\n")
         sys.exit(1)
         
     parser = parse_arguments()
@@ -248,4 +207,5 @@ def confirm_user_proceed():
         return False
 
 if __name__ == "__main__":
+    
     main()

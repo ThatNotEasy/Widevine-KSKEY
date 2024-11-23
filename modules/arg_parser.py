@@ -11,6 +11,7 @@ B = Fore.BLUE
 M = Fore.MAGENTA
 C = Fore.CYAN
 W = Fore.WHITE
+FR = Fore.RESET
 
 # Style Aliases
 BR = Style.BRIGHT
@@ -26,56 +27,56 @@ def parse_arguments():
     )
     parser.add_argument(
         '-u', '--license-url', required=False,
-        help=f'{Fore.CYAN}The URL to request the Widevine license.{Style.RESET_ALL}'
+        help=f'{C}The URL to request the Widevine license.{FR}'
     )
     parser.add_argument(
         '-m', '--manifest-url',
-        help=f'{Fore.CYAN}The URL of the media manifest or content file supported by this tool.{Style.RESET_ALL}'
+        help=f'{C}The URL of the media manifest or content file supported by this tool.{FR}'
     )
     parser.add_argument(
         '-pp', '--proxy',
         help=(
-            f'{Fore.CYAN}Specify the proxy method to use:\n'
-            f'  {Fore.GREEN}"scrape"{Fore.RESET} - Automatically scrape proxies.\n'
-            f'  {Fore.GREEN}"rotate"{Fore.RESET} - Use rotating proxies.\n'
-            f'  {Fore.GREEN}<country_code>{Fore.RESET} - Use proxies from the specified country.'
+            f'{C}Specify the proxy method to use:\n'
+            f'  {Fore.GREEN}"scrape"{FR} - Automatically scrape proxies.\n'
+            f'  {Fore.GREEN}"rotate"{FR} - Use rotating proxies.\n'
+            f'  {Fore.GREEN}<country_code>{FR} - Use proxies from the specified country.'
         )
     )
     parser.add_argument(
         '-cc', '--country-code', type=str,
-        help=f'{Fore.CYAN}The country code to use when scraping proxies (e.g., US, GB).{Style.RESET_ALL}'
+        help=f'{C}The country code to use when scraping proxies (e.g., US, GB).{FR}'
     )
     parser.add_argument(
         '-p', '--pssh', required=False,
-        help=f'{Fore.CYAN}The Protection System Specific Header (PSSH) in base64 format.{Style.RESET_ALL}'
+        help=f'{C}The Protection System Specific Header (PSSH) in base64 format.{FR}'
     )
     parser.add_argument(
         '-s', '--service', required=False,
-        help=f'{Fore.CYAN}Specify the service module to use (e.g., prime, netflix).{Style.RESET_ALL}'
+        help=f'{C}Specify the service module to use (e.g., prime, netflix).{FR}'
     )
     parser.add_argument(
         '-k', '--kid',
-        help=f'{Fore.CYAN}The Key Identifier (KID) of the media content.{Style.RESET_ALL}'
+        help=f'{C}The Key Identifier (KID) of the media content.{FR}'
     )
     parser.add_argument(
         "-lt", "--lr-token",
-        help=f'{Fore.CYAN}The login token. Note: Using this may result in your account being blocked.{Style.RESET_ALL}'
+        help=f'{C}The login token. Note: Using this may result in your account being blocked.{FR}'
     )
     parser.add_argument(
         '-c', '--content-id', required=False,
-        help=f'{Fore.CYAN}The content ID to use for HBO GO modules.{Style.RESET_ALL}'
+        help=f'{C}The content ID to use for HBO GO modules.{FR}'
     )
     parser.add_argument(
         '-d', '--downloads', action='store_true',
-        help=f'{Fore.CYAN}Enable the download process for the requested media.{Style.RESET_ALL}'
+        help=f'{C}Enable the download process for the requested media.{FR}'
     )
     parser.add_argument(
         '-o', '--output', required=False,
-        help=f'{Fore.CYAN}The name of the output file for the extracted keys or media.{Style.RESET_ALL}'
+        help=f'{C}The name of the output file for the extracted keys or media.{FR}'
     )
     parser.add_argument(
         '-H', '--header', action='append',
-        help=f'{Fore.CYAN}Specify custom HTTP headers in the format "Key: Value".{Style.RESET_ALL}'
+        help=f'{C}Specify custom HTTP headers in the format "Key: Value".{FR}'
     )
     return parser
 
@@ -83,27 +84,34 @@ def parse_arguments():
 def print_custom_help():
     """Print a custom help message."""
     print_title("C1pherForge")
-    print("C1pherForge 2.3 - A tool for extracting Widevine keys from supported URLs.\n")
+    print("\nC1pherForge 2.3 - A tool for extracting Widevine/PlayReady keys.\n")
     print("Available Options:")
     print("-" * 100)
     options = [
-        (G + "-u, --license-url,", Y + "The URL to request the Widevine license."),
-        (G + "-m, --manifest-url,", Y + "The URL of the media manifest or content file supported by this tool.\n"
-        '----------------------------------------------------------------------------------------------------'),
-        ("-pp, --proxy", 'Specify the proxy method to use:\n'
-                        '                               "scrape" - Automatically scrape proxies.\n'
-                        '                               "rotate" - Use rotating proxies.\n'
-                        '                               <country_code> - Use proxies from the specified country.\n'
-                        '-cc, --country-code            The country code to use when scraping proxies (e.g., US, GB).\n'
-                        '----------------------------------------------------------------------------------------------------'),
-        ("-p, --pssh", "The Protection System Specific Header (PSSH) in base64 format."),
-        ("-s, --service", "Specify the service module to use (e.g., prime, netflix)."),
-        ("-k, --kid", "The Key Identifier (KID) of the media content."),
-        ("-lt, --lr-token", "The login token. Note: Using this may result in your account being blocked."),
-        ("-c, --content-id", "The content ID to use for HBO GO modules."),
-        ("-d, --downloads", "Enable the download process for the requested media."),
-        ("-o, --output", "The name of the output file for the extracted keys or media."),
-        ("-H, --header", 'Specify custom HTTP headers in the format "Key: Value".'),
+        (f"{G}-u, --license-url,{FR}", f"{Y}The URL to request the Widevine license.{FR}"),
+        (f"{G}-m, --manifest-url,{FR}", 
+        f"{Y}The URL of the media manifest or content file supported by this tool.{FR}\n"
+        f"{FR}{'-' * 100}{FR}"),
+        (f"{G}-pp, --proxy,{FR}", 
+        f"{Y}Specify the proxy method to use:{FR}\n"
+        f'                     {G}"scrape"{FR} - Automatically scrape proxies.\n'
+        f'                     {G}"rotate"{FR} - Use rotating proxies.\n'
+        f'                     {G}<country_code>{FR} - Use proxies from the specified country.\n'
+        f"{G}-cc, --country-code,{FR} The country code to use when scraping proxies (e.g., US, GB).{FR}\n"
+        f"{FR}{'-' * 100}{FR}"),
+        (f"{G}-p, --pssh,{FR}", f"{Y}The Protection System Specific Header (PSSH) in base64 format.{FR}"),
+        (f"{G}-s, --service,{FR}", f"{Y}Specify the service module to use (e.g., prime, netflix).{FR}"),
+        (f"{G}-k, --kid,{FR}", f"{Y}The Key Identifier (KID) of the media content.{FR}"),
+        (f"{G}-lt, --lr-token,{FR}", 
+        f"{Y}The login token. Note: Using this may result in your account being blocked.{FR}"),
+        (f"{G}-c, --content-id,{FR}", 
+        f"{Y}The content ID to use for HBO GO modules.{FR}"),
+        (f"{G}-d, --downloads,{FR}", 
+        f"{Y}Enable the download process for the requested media.{FR}"),
+        (f"{G}-o, --output,{FR}", 
+        f"{Y}The name of the output file for the extracted keys or media.{FR}"),
+        (f"{G}-H, --header,{FR}", 
+        f"{Y}Specify custom HTTP headers in the format {G}'Key: Value'{FR}."),
     ]
     for opt, desc in options:
         print(f"{opt.ljust(30)} {desc}")

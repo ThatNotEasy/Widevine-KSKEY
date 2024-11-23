@@ -152,7 +152,7 @@ def get_binary_path(*names: str) -> Optional[Path]:
 
 def print_title(title_text):
     title = pyfiglet.figlet_format(title_text, font='slant')
-    print(Fore.CYAN + f"{title}Running " + Style.RESET_ALL)
+    print(Fore.CYAN + f"{title} " + Fore.RED + "                        https://github.com/thatnoteasy" + Style.RESET_ALL)
 
 def print_license_keys(keys):
     for key in keys:

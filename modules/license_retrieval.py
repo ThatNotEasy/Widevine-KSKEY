@@ -11,11 +11,13 @@ from services.skyshowtime import get_user_token, get_vod_request
 from services import paralelo
 from colorama import Fore
 from modules.logging import setup_logging
+from modules.config import load_configurations
 from modules.proxy import used_proxy
 from services.learnyst import ConfigManager, Learnyst, PlayerManager
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging = setup_logging()
+config = load_configurations()
 cf = ConfigManager()
 cf.initialize()
     
